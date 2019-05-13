@@ -116,12 +116,82 @@ def mtz_to_map(mtz_filename, output_filename):
 
     return output_filepath
 
+def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
+    """Converts a map file to a map file with specific xyz dimensions and returns the output file location"""
+
+    try:
+        map_filepath = Path(map_filename)
+        output_filepath = Path(output_filename)
+    except:
+        raise Exception("Inputs must be paths of input map file and output map file.")
+
+    logging.info(f"Converting map to map")
+    logging.info(f"Input file at {map_filepath}")
+    logging.info(f"Output file at {output_filepath}")
+
+    # Check parameters coming in
+    assert map_filepath.suffix == ".map",\
+        "Please provide a map_filename which points to the .map file you wish to convert."
+    assert map_filepath.exists(), f"Could not find a valid file at {map_filepath}"
+    assert output_filepath.suffix == ".map", "Please provide an output_filename with a .map extension."
+    assert output_filepath.parent.exists(), f"Could not find output directory at {output_filepath.parent}"
+    try:
+        assert len(xyz_limits) == 3
+        # Will raise error if values are not integers
+        assert all(type(value) == int for value in xyz_limits)
+    except:
+        raise Exception("XYZ Limits must be list of 3 integers for the XYZ dimension of the new map.")
+    assert type(symmetry_group) == int, "Please provide an integer symmetry group for the transformation."
+
+    # Convert list of cells info into string
+
+    # Build up keywords
+    keywords = "\n".join([
+        f"XYZLIM 0 {xyz_limits[0]} 0 {xyz_limits[1]} 0 {xyz_limits[2]}",
+        "EXTEND XTAL",
+        f"SYMM {symmetry_group}"
+    ])
+
+    logging.info(f"Keywords: {keywords}")
+
+    # Convert to bytes
+    b_keywords = bytes(keywords, "utf-8")
+
+    # Get location of shell script
+    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    cfft_shell = os.path.join(__location__, 'shell_scripts/mapmask.sh')
+
+    # Build up command list
+    command = [cfft_shell, "mapin", map_filepath, "mapout", output_filepath]
+
+    logging.info(f"Command: {command}")
+
+    result = procrunner.run(command, stdin=b_keywords)
+
+    # Check that it worked
+    assert result["exitcode"] == 0, f"Error converting {map_filepath} to {output_filepath}"
+    assert result["stderr"] == b"", f"Error collecting information from {map_filepath} to {output_filepath}"
+
+    logging.info("Conversion successful")
+
+    return output_filepath
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    phs_to_mtz('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC.phs',
-               '/dls/science/users/riw56156/topaz_test_data/python_test/4PUC.mtz',
+    #Setting up file path names
+    phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs')
+    mtz_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.mtz')
+    map_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.map')
+    regular_filepath = phase_filepath.with_suffix('.map')
+
+    phs_to_mtz(phase_filepath,
+               mtz_filepath,
                [66.45, 112.123, 149.896, 90, 90, 90], 19)
 
-    mtz_to_map('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC.mtz',
-               '/dls/science/users/riw56156/topaz_test_data/python_test/4PUC.map')
+    mtz_to_map(mtz_filepath,
+               map_filepath)
+
+    map_to_map(map_filepath,
+               regular_filepath,
+               [200, 200, 200], 19)
