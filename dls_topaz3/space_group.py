@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import logging
 import procrunner
+import sys
 
 def find_space_group(text):
     """Open the filename at this path and try to extract a space group. Return space group string."""
@@ -39,8 +40,8 @@ def textfile_find_space_group(file):
     try:
         with open(file, "r") as f:
             text = f.read()
-    except Exception as e:
-        logging.warning(f"Could not open file at {file}")
+    except:
+        logging.warning(f"Could not read from file at {file}")
         raise
 
     logging.debug("Searching for space group")
@@ -92,8 +93,30 @@ def mtz_find_space_group(mtzfile):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG)
+    filename = sys.argv[1]
 
-    print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/phenix_output.txt"))
-    print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log"))
-    print(mtz_find_space_group("/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"))
+    logging.info(f"Get space group information from {filename}")
+
+    filepath = Path(filename)
+
+    # Try to get an absolute file path
+    current_dir = Path(os.getcwd())
+
+    if Path(current_dir / filepath).exists():
+        abs_path = Path(current_dir / filepath)
+    else:
+        # Check for absolute path
+        assert filepath.exists(), f"Could not find a file for {filepath}"
+        abs_path = filepath
+
+    # Use text or mtz file?
+    if abs_path.suffix == ".mtz":
+        logging.info("Detected mtz file...")
+        print(mtz_find_space_group(abs_path))
+    else:
+        logging.info("Using text file analysis...")
+        print(textfile_find_space_group(abs_path))
+
+    #print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/phenix_output.txt"))
+    #print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log"))
+    #print(mtz_find_space_group("/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"))
