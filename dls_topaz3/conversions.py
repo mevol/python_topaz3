@@ -6,6 +6,8 @@ import os
 import logging
 
 from pathlib import Path
+from mtz_info import mtz_get_cell
+from space_group import textfile_find_space_group, mtz_find_space_group
 
 def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file and return the new file location."""
@@ -210,10 +212,57 @@ def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_li
 
     return True
 
+def files_to_map(phase_filename, output_filename, cell_info_filename, space_group_filename, xyz_limits):
+    """Extract information from files before running the phase to map conversion"""
+
+    try:
+        phase_filepath = Path(phase_filename)
+        output_filepath = Path(output_filename)
+        cell_info_filepath = Path(cell_info_filename)
+        space_group_filepath = Path(space_group_filename)
+    except:
+        raise Exception("Inputs must be absolute paths to files.")
+
+    # Check incoming files (which won't be checked later)
+    assert cell_info_filepath.exists(), f"Could not find file at {cell_info_filepath}"
+    assert cell_info_filepath.suffix==".mtz", f"Expected .mtz file, got {cell_info_filepath}"
+    assert space_group_filepath.exists(), f"Could not find file at {space_group_filepath}"
+
+    logging.info(f"Getting cell info from {cell_info_filepath}")
+    try:
+        cell_info = mtz_get_cell(cell_info_filepath)
+    except:
+        logging.error(f"Could not get cell information from {cell_info_filepath}")
+        raise
+
+    logging.info(f"Getting space group from {space_group_filepath}")
+    try:
+        if space_group_filepath.suffix==".mtz":
+            space_group = mtz_find_space_group(space_group_filepath)
+        else:
+            space_group = textfile_find_space_group(space_group_filepath)
+    except:
+        logging.error(f"Could not get space info from {space_group_filepath}")
+        raise
+
+    logging.info("Running phase to map conversion")
+    try:
+        phase_to_map(phase_filepath, output_filepath, cell_info, space_group, xyz_limits)
+    except:
+        logging.error("Could not convert phase file to map")
+
+    return True
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
+    files_to_map("/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs",
+                 "/dls/science/users/riw56156/topaz_test_data/python_test/file_to_map/output.map",
+                 "/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz",
+                 "/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log",
+                 [200, 200, 200])
+
+    """
     #Setting up file path names
     phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_str_i.phs')
     mtz_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.mtz')
@@ -225,4 +274,5 @@ if __name__ == '__main__':
                  [66.45, 112.123, 149.896, 90, 90, 90],
                  "P212121",
                  [200, 200, 200])
+    """
 
