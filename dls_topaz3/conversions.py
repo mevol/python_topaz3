@@ -31,7 +31,6 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, symmetry_group):
         test_float = [float(value) for value in cell_info]
     except:
         raise Exception("Cell info must be list of 6 floating numbers for the cell lengths and angles.")
-    assert type(symmetry_group) == int, "Please provide an integer symmetry group for the transformation."
 
     # Convert list of cells info into string
     cell_info_string = " ".join([str(cell) for cell in cell_info])
@@ -58,6 +57,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, symmetry_group):
 
     logging.info(f"Command: {command}")
 
+    #Run external program
     result = procrunner.run(command, stdin=b_keywords)
 
     #Check that it worked
@@ -106,6 +106,7 @@ def mtz_to_map(mtz_filename, output_filename):
     __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     cfft_shell = os.path.join(__location__, 'shell_scripts/cfft.sh')
 
+    #Run external program
     result = procrunner.run([cfft_shell, '-stdin'], stdin=b_keywords)
 
     #Check that it worked
@@ -141,9 +142,6 @@ def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
         assert all(type(value) == int for value in xyz_limits)
     except:
         raise Exception("XYZ Limits must be list of 3 integers for the XYZ dimension of the new map.")
-    assert type(symmetry_group) == int, "Please provide an integer symmetry group for the transformation."
-
-    # Convert list of cells info into string
 
     # Build up keywords
     keywords = "\n".join([
@@ -166,6 +164,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
 
     logging.info(f"Command: {command}")
 
+    #Run external program
     result = procrunner.run(command, stdin=b_keywords)
 
     # Check that it worked
@@ -180,18 +179,20 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     #Setting up file path names
-    phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs')
+    phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_str_i.phs')
     mtz_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.mtz')
     map_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.map')
     regular_filepath = phase_filepath.with_suffix('.map')
 
     phs_to_mtz(phase_filepath,
                mtz_filepath,
-               [66.45, 112.123, 149.896, 90, 90, 90], 19)
+               [66.45, 112.123, 149.896, 90, 90, 90],
+               "P212121")
 
     mtz_to_map(mtz_filepath,
                map_filepath)
 
     map_to_map(map_filepath,
                regular_filepath,
-               [200, 200, 200], 19)
+               [200, 200, 200],
+               "P212121")
