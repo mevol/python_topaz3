@@ -7,7 +7,7 @@ import logging
 
 from pathlib import Path
 
-def phs_to_mtz(phase_filename, output_filename, cell_info, symmetry_group):
+def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file and return the new file location."""
     try:
         phase_filepath = Path(phase_filename)
@@ -38,7 +38,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, symmetry_group):
     # Build up keywords
     keywords = "\n".join([
         f"CELL {cell_info_string}",
-        f"SYMM {symmetry_group}",
+        f"SYMM {space_group}",
         "labout H K L F FOM PHI SIGF",
         "CTYPOUT H H H F W P Q"
     ])
@@ -58,7 +58,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, symmetry_group):
     logging.info(f"Command: {command}")
 
     #Run external program
-    result = procrunner.run(command, stdin=b_keywords)
+    result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
 
     #Check that it worked
     assert result["exitcode"] == 0, f"Error converting {phase_filepath} to {output_filepath}"
@@ -107,7 +107,7 @@ def mtz_to_map(mtz_filename, output_filename):
     cfft_shell = os.path.join(__location__, 'shell_scripts/cfft.sh')
 
     #Run external program
-    result = procrunner.run([cfft_shell, '-stdin'], stdin=b_keywords)
+    result = procrunner.run([cfft_shell, '-stdin'], stdin=b_keywords, print_stdout=False)
 
     #Check that it worked
     assert result["exitcode"] == 0, f"Error converting {mtz_filepath} to {output_filepath}"
@@ -117,7 +117,7 @@ def mtz_to_map(mtz_filename, output_filename):
 
     return output_filepath
 
-def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
+def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     """Converts a map file to a map file with specific xyz dimensions and returns the output file location"""
 
     try:
@@ -147,7 +147,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
     keywords = "\n".join([
         f"XYZLIM 0 {xyz_limits[0]} 0 {xyz_limits[1]} 0 {xyz_limits[2]}",
         "EXTEND XTAL",
-        f"SYMM {symmetry_group}"
+        f"SYMM {space_group}"
     ])
 
     logging.info(f"Keywords: {keywords}")
@@ -165,7 +165,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
     logging.info(f"Command: {command}")
 
     #Run external program
-    result = procrunner.run(command, stdin=b_keywords)
+    result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
 
     # Check that it worked
     assert result["exitcode"] == 0, f"Error converting {map_filepath} to {output_filepath}"
@@ -175,6 +175,42 @@ def map_to_map(map_filename, output_filename, xyz_limits, symmetry_group):
 
     return output_filepath
 
+def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_limits):
+    """Convert a phase file to a regularised map file with dimensions x, y, z"""
+
+    try:
+        phase_filepath = Path(phase_filename)
+        output_filepath = Path(output_filename)
+    except:
+        raise Exception("Inputs must be paths of input phase file and output map file.")
+
+    assert output_filepath.parent.exists(), f"Could not find directory for output file, expected at {output_filepath.parent}"
+
+    logging.info(f"Beginning phase to map conversion")
+    logging.info(f"Input: {phase_filepath}")
+    logging.info(f"Output: {output_filepath}")
+
+    # Create temporary file names
+    mtz_filepath = output_filepath.parent / (output_filepath.stem + '_temp.mtz')
+    map_filepath = output_filepath.parent / (output_filepath.stem + '_temp.map')
+
+    # Convert phase to mtz
+    phs_to_mtz(phase_filepath, mtz_filepath, cell_info, space_group)
+
+    # Convert mtz to map
+    mtz_to_map(mtz_filepath, map_filepath)
+
+    # Convert map to regularized map
+    map_to_map(map_filepath, output_filepath, xyz_limits, space_group)
+
+    # Check that file was created
+    assert output_filepath.exists(), "Output file path was not created"
+
+    logging.info(f"Map successfully generated at {output_filepath}")
+
+    return True
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
@@ -182,17 +218,11 @@ if __name__ == '__main__':
     phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_str_i.phs')
     mtz_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.mtz')
     map_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.map')
-    regular_filepath = phase_filepath.with_suffix('.map')
+    output_filepath = phase_filepath.with_suffix('.map')
 
-    phs_to_mtz(phase_filepath,
-               mtz_filepath,
-               [66.45, 112.123, 149.896, 90, 90, 90],
-               "P212121")
+    phase_to_map('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs',
+                 '/dls/science/users/riw56156/topaz_test_data/python_test/phase_to_map/output.map',
+                 [66.45, 112.123, 149.896, 90, 90, 90],
+                 "P212121",
+                 [200, 200, 200])
 
-    mtz_to_map(mtz_filepath,
-               map_filepath)
-
-    map_to_map(map_filepath,
-               regular_filepath,
-               [200, 200, 200],
-               "P212121")
