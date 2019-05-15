@@ -4,6 +4,7 @@
 import procrunner
 import os
 import logging
+import logconfig
 
 from pathlib import Path
 from mtz_info import mtz_get_cell
@@ -17,9 +18,9 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     except:
         raise Exception("Inputs must be paths of input phase file and output mtz file.")
 
-    logging.info(f"Converting phase to mtz")
-    logging.info(f"Input file at {phase_filepath}")
-    logging.info(f"Output file at {output_filepath}")
+    userlog.debug(f"Converting phase to mtz")
+    log.debug(f"Input file at {phase_filepath}")
+    log.debug(f"Output file at {output_filepath}")
 
     # Check parameters coming in
     assert phase_filepath.suffix == ".phs" or phase_filepath.suffix == ".pha", \
@@ -45,7 +46,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
         "CTYPOUT H H H F W P Q"
     ])
 
-    logging.info(f"Keywords: {keywords}")
+    log.debug(f"Keywords: {keywords}")
 
     # Convert to bytes
     b_keywords = bytes(keywords, "utf-8")
@@ -57,7 +58,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     # Build up command list
     command = [cfft_shell, "hklin", phase_filepath, "hklout", output_filepath]
 
-    logging.info(f"Command: {command}")
+    log.debug(f"Command: {command}")
 
     #Run external program
     result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
@@ -66,7 +67,7 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     assert result["exitcode"] == 0, f"Error converting {phase_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {phase_filepath} to {output_filepath}"
 
-    logging.info("Conversion successful")
+    userlog.debug("Conversion successful")
 
     return output_filepath
 
@@ -79,9 +80,9 @@ def mtz_to_map(mtz_filename, output_filename):
     except:
         raise Exception("Inputs must be paths of input mtz file and output map file.")
 
-    logging.info(f"Converting mtz to map")
-    logging.info(f"Input file at {mtz_filepath}")
-    logging.info(f"Output file at {output_filepath}")
+    userlog.debug(f"Converting mtz to map")
+    log.debug(f"Input file at {mtz_filepath}")
+    log.debug(f"Output file at {output_filepath}")
 
     # Check parameters coming in
     assert mtz_filepath.suffix == ".mtz",\
@@ -99,7 +100,7 @@ def mtz_to_map(mtz_filename, output_filename):
         "stats-radius 4.0"
     ])
 
-    logging.info(f"Keywords: {keywords}")
+    log.debug(f"Keywords: {keywords}")
 
     # Convert to bytes
     b_keywords = bytes(keywords, "utf-8")
@@ -115,7 +116,7 @@ def mtz_to_map(mtz_filename, output_filename):
     assert result["exitcode"] == 0, f"Error converting {mtz_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {mtz_filepath} to {output_filepath}"
 
-    logging.info("Conversion successful")
+    userlog.debug("Conversion successful")
 
     return output_filepath
 
@@ -128,9 +129,9 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     except:
         raise Exception("Inputs must be paths of input map file and output map file.")
 
-    logging.info(f"Converting map to map")
-    logging.info(f"Input file at {map_filepath}")
-    logging.info(f"Output file at {output_filepath}")
+    userlog.debug(f"Converting map to map")
+    log.debug(f"Input file at {map_filepath}")
+    log.debug(f"Output file at {output_filepath}")
 
     # Check parameters coming in
     assert map_filepath.suffix == ".map",\
@@ -152,7 +153,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
         f"SYMM {space_group}"
     ])
 
-    logging.info(f"Keywords: {keywords}")
+    log.debug(f"Keywords: {keywords}")
 
     # Convert to bytes
     b_keywords = bytes(keywords, "utf-8")
@@ -164,7 +165,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     # Build up command list
     command = [cfft_shell, "mapin", map_filepath, "mapout", output_filepath]
 
-    logging.info(f"Command: {command}")
+    log.debug(f"Command: {command}")
 
     #Run external program
     result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
@@ -173,7 +174,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     assert result["exitcode"] == 0, f"Error converting {map_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {map_filepath} to {output_filepath}"
 
-    logging.info("Conversion successful")
+    userlog.debug("Conversion successful")
 
     return output_filepath
 
@@ -188,9 +189,9 @@ def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_li
 
     assert output_filepath.parent.exists(), f"Could not find directory for output file, expected at {output_filepath.parent}"
 
-    logging.info(f"Beginning phase to map conversion")
-    logging.info(f"Input: {phase_filepath}")
-    logging.info(f"Output: {output_filepath}")
+    userlog.debug(f"Beginning phase to map conversion")
+    log.debug(f"Input: {phase_filepath}")
+    log.debug(f"Output: {output_filepath}")
 
     # Create temporary file names
     mtz_filepath = output_filepath.parent / (output_filepath.stem + '_temp.mtz')
@@ -208,7 +209,7 @@ def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_li
     # Check that file was created
     assert output_filepath.exists(), "Output file path was not created"
 
-    logging.info(f"Map successfully generated at {output_filepath}")
+    userlog.debug(f"Map successfully generated at {output_filepath}")
 
     return True
 
@@ -228,33 +229,40 @@ def files_to_map(phase_filename, output_filename, cell_info_filename, space_grou
     assert cell_info_filepath.suffix==".mtz", f"Expected .mtz file, got {cell_info_filepath}"
     assert space_group_filepath.exists(), f"Could not find file at {space_group_filepath}"
 
-    logging.info(f"Getting cell info from {cell_info_filepath}")
+    log.info(f"Getting cell info from {cell_info_filepath}")
     try:
         cell_info = mtz_get_cell(cell_info_filepath)
     except:
-        logging.error(f"Could not get cell information from {cell_info_filepath}")
+        log.error(f"Could not get cell information from {cell_info_filepath}")
         raise
 
-    logging.info(f"Getting space group from {space_group_filepath}")
+    log.info(f"Getting space group from {space_group_filepath}")
     try:
         if space_group_filepath.suffix==".mtz":
             space_group = mtz_find_space_group(space_group_filepath)
         else:
             space_group = textfile_find_space_group(space_group_filepath)
     except:
-        logging.error(f"Could not get space info from {space_group_filepath}")
+        log.error(f"Could not get space info from {space_group_filepath}")
         raise
 
-    logging.info("Running phase to map conversion")
+    log.info("Running phase to map conversion")
     try:
         phase_to_map(phase_filepath, output_filepath, cell_info, space_group, xyz_limits)
     except:
-        logging.error("Could not convert phase file to map")
+        log.error("Could not convert phase file to map")
+
+    userlog.info("Conversion complete")
 
     return True
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    # Set up initial logging things
+    userlog = logging.getLogger(name="usermessages")
+    log = logging.getLogger(name="debug_log")
+    logconfig.setup_logging()
+
+    userlog.info("Beginning test run of Files to Map conversion")
 
     files_to_map("/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs",
                  "/dls/science/users/riw56156/topaz_test_data/python_test/file_to_map/output.map",
