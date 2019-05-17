@@ -10,6 +10,9 @@ from pathlib import Path
 from mtz_info import mtz_get_cell
 from space_group import textfile_find_space_group, mtz_find_space_group
 
+log = logging.getLogger(name="debug_log")
+userlog = logging.getLogger(name="usermessages")
+
 def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file and return the new file location."""
     try:
@@ -38,6 +41,10 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     # Convert list of cells info into string
     cell_info_string = " ".join([str(cell) for cell in cell_info])
 
+    # Catch strange R/H space group inconsistency (different between different programs)
+    if space_group[0] == "R":
+        space_group = "H" + space_group[1:]
+
     # Build up keywords
     keywords = "\n".join([
         f"CELL {cell_info_string}",
@@ -61,11 +68,12 @@ def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
     log.debug(f"Command: {command}")
 
     #Run external program
-    result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
+    result = procrunner.run(command, stdin=b_keywords, print_stdout=False, timeout=5)
 
     #Check that it worked
     assert result["exitcode"] == 0, f"Error converting {phase_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {phase_filepath} to {output_filepath}"
+    assert result["timeout"] == False, f"Error collecting information from {phase_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
 
@@ -110,11 +118,12 @@ def mtz_to_map(mtz_filename, output_filename):
     cfft_shell = os.path.join(__location__, 'shell_scripts/cfft.sh')
 
     #Run external program
-    result = procrunner.run([cfft_shell, '-stdin'], stdin=b_keywords, print_stdout=False)
+    result = procrunner.run([cfft_shell, '-stdin'], stdin=b_keywords, print_stdout=False, timeout=5)
 
     #Check that it worked
     assert result["exitcode"] == 0, f"Error converting {mtz_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {mtz_filepath} to {output_filepath}"
+    assert result["timeout"] == False, f"Error collecting information from {mtz_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
 
@@ -146,6 +155,10 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     except:
         raise Exception("XYZ Limits must be list of 3 integers for the XYZ dimension of the new map.")
 
+    # Catch strange R/H space group inconsistency (different between different programs)
+    if space_group[0] == "R":
+        space_group = "H" + space_group[1:]
+
     # Build up keywords
     keywords = "\n".join([
         f"XYZLIM 0 {xyz_limits[0]} 0 {xyz_limits[1]} 0 {xyz_limits[2]}",
@@ -168,11 +181,12 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
     log.debug(f"Command: {command}")
 
     #Run external program
-    result = procrunner.run(command, stdin=b_keywords, print_stdout=False)
+    result = procrunner.run(command, stdin=b_keywords, print_stdout=False, timeout=5)
 
     # Check that it worked
     assert result["exitcode"] == 0, f"Error converting {map_filepath} to {output_filepath}"
     assert result["stderr"] == b"", f"Error collecting information from {map_filepath} to {output_filepath}"
+    assert result["timeout"] == False, f"Error collecting information from {map_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
 

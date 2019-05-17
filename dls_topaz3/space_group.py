@@ -72,11 +72,12 @@ def mtz_find_space_group(mtzfile):
     logging.info(f"Command: {command}")
 
     # Run external program
-    result = procrunner.run(command, print_stdout=False)
+    result = procrunner.run(command, print_stdout=False, timeout=5)
 
     # Check that it worked
-    #Only using one assert because module load command raises an error even if it works properly
+    # Module load command raises an error even if it works properly
     assert result["exitcode"] == 0, f"Error dumping {mtz_filepath}"
+    assert result["timeout"] == 0, f"Error dumping {mtz_filepath}"
 
     # Decode output from bytes to UTF-8 string
     text = str(result["stdout"], "utf-8")

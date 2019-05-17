@@ -13,11 +13,12 @@ def mtz_get_xdata(mtz_filename):
     mtzinfo_shell = os.path.join(__location__, 'shell_scripts/mtzinfo.sh')
 
     #Run script and get the standard output or raise an exception
-    result = procrunner.run([mtzinfo_shell, mtz_filename], print_stdout=False)
+    result = procrunner.run([mtzinfo_shell, mtz_filename], print_stdout=False, timeout=5)
 
     #Check that it worked
     assert result["exitcode"] == 0, f"Error collecting information from {mtz_filename}"
     assert result["stderr"] == b"", f"Error collecting information from {mtz_filename}"
+    assert result["timeout"] == False, f"Error collecting information from {mtz_filename}"
 
     #print(result)
 
