@@ -9,13 +9,13 @@ from get_cc import get_cc
 from database_ops import prepare_training_database
 
 def prepare_training_data(phase_directory,
-                          output_directory,
                           cell_info_directory,
                           cell_info_path,
                           space_group_directory,
                           space_group_path,
                           database,
                           xyz_limits,
+                          output_directory,
                           delete_temp=True):
     """Convert both the original and inverse hands of a structure into a regular map file based on information
     about the cell info and space group and the xyz dimensions. Return True if no exceptions"""
@@ -83,7 +83,7 @@ def prepare_training_data(phase_directory,
             cell_info_file = cell_info_dir / Path(struct) / Path(cell_info_path)
             assert cell_info_file.exists()
         except:
-            logging.error(f"Could not find cell info file at {cell_info_file}")
+            logging.error(f"Could not find cell info file at {cell_info_dir}")
             raise
 
         try:
@@ -96,7 +96,7 @@ def prepare_training_data(phase_directory,
             space_group_file = space_group_dir / Path(struct) / Path(space_group_path)
             assert space_group_file.exists()
         except:
-            logging.error(f"Could not find space group file at {space_group_file}")
+            logging.error(f"Could not find space group file at {space_group_dir}")
             raise
 
         try:
@@ -106,7 +106,7 @@ def prepare_training_data(phase_directory,
             raise
 
     logging.info("Collected cell info and space group")
-    """
+
     # Begin transformation
     for struct in phase_structs:
         logging.info(f"Converting {struct}, {phase_structs.index(struct)+1}/{len(phase_structs)}")
@@ -129,10 +129,10 @@ def prepare_training_data(phase_directory,
         # Convert original
         try:
             phase_to_map(original_hand,
-                         output_dir / (struct + ".map"),
                          cell_info_dict[struct],
                          space_group_dict[struct],
-                         xyz_limits)
+                         xyz_limits,
+                         output_dir / (struct + ".map"))
         except:
             logging.error(f"Could not convert original hand for {struct}")
             raise
@@ -140,16 +140,16 @@ def prepare_training_data(phase_directory,
         # Convert inverse
         try:
             phase_to_map(inverse_hand,
-                         output_dir / (struct + "_i.map"),
                          cell_info_dict[struct],
                          space_group_dict[struct],
-                         xyz_limits)
+                         xyz_limits,
+                         output_dir / (struct + "_i.map"))
         except:
             logging.error(f"Could not convert original hand for {struct}")
             raise
 
         logging.info(f"Successfully converted {struct}")
-    """
+
     logging.info("Finished conversions")
 
     # Build up database - collect all cc information first then put it into database
@@ -210,11 +210,11 @@ if __name__ == '__main__':
     userlog = logging.getLogger(name="usermessages")
 
     prepare_training_data("/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/EP_phasing/traced",
-                          "/dls/science/users/riw56156/topaz_test_data/training_test",
                           "/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/xia2_stresstest",
                           "DataFiles/AUTOMATIC_DEFAULT_free.mtz",
                           "/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/EP_phasing/traced",
                           "simple_xia2_to_shelxcde.log",
                           "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
                           [200, 200, 200],
+                          "/dls/science/users/riw56156/topaz_test_data/training_test",
                           True)

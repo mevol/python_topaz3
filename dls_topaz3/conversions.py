@@ -13,7 +13,7 @@ from space_group import textfile_find_space_group, mtz_find_space_group
 log = logging.getLogger(name="debug_log")
 userlog = logging.getLogger(name="usermessages")
 
-def phs_to_mtz(phase_filename, output_filename, cell_info, space_group):
+def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
     """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file and return the new file location."""
     try:
         phase_filepath = Path(phase_filename)
@@ -129,7 +129,7 @@ def mtz_to_map(mtz_filename, output_filename):
 
     return output_filepath
 
-def map_to_map(map_filename, output_filename, xyz_limits, space_group):
+def map_to_map(map_filename, xyz_limits, space_group, output_filename):
     """Converts a map file to a map file with specific xyz dimensions and returns the output file location"""
 
     try:
@@ -192,7 +192,7 @@ def map_to_map(map_filename, output_filename, xyz_limits, space_group):
 
     return output_filepath
 
-def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_limits):
+def phase_to_map(phase_filename, cell_info, space_group, xyz_limits, output_filename):
     """Convert a phase file to a regularised map file with dimensions x, y, z"""
 
     try:
@@ -212,13 +212,13 @@ def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_li
     map_filepath = output_filepath.parent / (output_filepath.stem + '_temp.map')
 
     # Convert phase to mtz
-    phs_to_mtz(phase_filepath, mtz_filepath, cell_info, space_group)
+    phs_to_mtz(phase_filepath, cell_info, space_group, mtz_filepath)
 
     # Convert mtz to map
     mtz_to_map(mtz_filepath, map_filepath)
 
     # Convert map to regularized map
-    map_to_map(map_filepath, output_filepath, xyz_limits, space_group)
+    map_to_map(map_filepath, xyz_limits, space_group, output_filepath)
 
     # Check that file was created
     assert output_filepath.exists(), "Output file path was not created"
@@ -227,7 +227,7 @@ def phase_to_map(phase_filename, output_filename, cell_info, space_group, xyz_li
 
     return True
 
-def files_to_map(phase_filename, output_filename, cell_info_filename, space_group_filename, xyz_limits):
+def files_to_map(phase_filename, cell_info_filename, space_group_filename, xyz_limits, output_filename, ):
     """Extract information from files before running the phase to map conversion"""
 
     try:
@@ -262,7 +262,7 @@ def files_to_map(phase_filename, output_filename, cell_info_filename, space_grou
 
     log.info("Running phase to map conversion")
     try:
-        phase_to_map(phase_filepath, output_filepath, cell_info, space_group, xyz_limits)
+        phase_to_map(phase_filepath, cell_info, space_group, xyz_limits, output_filepath)
     except:
         log.error("Could not convert phase file to map")
 
@@ -279,10 +279,11 @@ if __name__ == '__main__':
     userlog.info("Beginning test run of Files to Map conversion")
 
     files_to_map("/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs",
-                 "/dls/science/users/riw56156/topaz_test_data/python_test/file_to_map/output.map",
                  "/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz",
                  "/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log",
-                 [200, 200, 200])
+                 [200, 200, 200],
+                 "/dls/science/users/riw56156/topaz_test_data/python_test/file_to_map/output.map"
+    )
 
     """
     #Setting up file path names
