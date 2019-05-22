@@ -5,6 +5,7 @@ import logging
 
 from pathlib import Path
 
+
 def prepare_training_database(database, results):
     """Prepare the database for training
 
@@ -21,7 +22,9 @@ def prepare_training_database(database, results):
     assert Path(database).exists(), f"Could not find database at {database}"
     assert type(results) == list, "Please provide a formatted list for results"
     assert len(results) > 0, "No results provided"
-    assert all(len(result) == 5 for result in results), "Must provide correct format for results - see documentation"
+    assert all(
+        len(result) == 5 for result in results
+    ), "Must provide correct format for results - see documentation"
 
     logging.info("Preparing training database")
 
@@ -35,7 +38,9 @@ def prepare_training_database(database, results):
 
     try:
         # Create the table if it does not exist
-        cursor.execute("CREATE TABLE IF NOT EXISTS ai_training (Name varchar(4) PRIMARY KEY, original_cc FLOAT, inverse_cc FLOAT, original_score BOOL, inverse_score BOOL)")
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS ai_training (Name varchar(4) PRIMARY KEY, original_cc FLOAT, inverse_cc FLOAT, original_score BOOL, inverse_score BOOL)"
+        )
     except Exception:
         logging.error("Could not find or create ai_training table")
         raise
@@ -56,8 +61,9 @@ def prepare_training_database(database, results):
     return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    prepare_training_database("/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
-                              [("ABC4", 5.0, 11, False, True),
-                               ("A3C4", 79, 2.1, True, False),])
+    prepare_training_database(
+        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
+        [("ABC4", 5.0, 11, False, True), ("A3C4", 79, 2.1, True, False)],
+    )

@@ -5,6 +5,7 @@ import argparse
 
 from pathlib import Path
 
+
 def list_temp_files(directory):
     """List all temporary files within a directory which are marked with *temp* in their name"""
     try:
@@ -13,7 +14,7 @@ def list_temp_files(directory):
     except:
         raise Exception(f"Expected absolute path to valid directory, got {directory}")
 
-    temps = glob.glob(str(dir_path / '*temp*'))
+    temps = glob.glob(str(dir_path / "*temp*"))
 
     temp_files = [file for file in temps if Path(file).is_file()]
 
@@ -50,17 +51,23 @@ def delete_temp_files(directory):
     return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # As command line utility, check user wants to do this
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-a",
-                        help="directory provided is absolute path, otherwise assumed relative",
-                        action="store_true")
-    parser.add_argument("directory", help="the directory you wish to remove temporary files from", type=str)
-    parser.add_argument("--force",
-                        help="delete all temp files without checking",
-                        action="store_true")
+    parser.add_argument(
+        "-a",
+        help="directory provided is absolute path, otherwise assumed relative",
+        action="store_true",
+    )
+    parser.add_argument(
+        "directory",
+        help="the directory you wish to remove temporary files from",
+        type=str,
+    )
+    parser.add_argument(
+        "--force", help="delete all temp files without checking", action="store_true"
+    )
 
     args = parser.parse_args()
 

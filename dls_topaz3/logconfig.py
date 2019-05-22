@@ -16,25 +16,21 @@ default_config = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "simple": {
-            "format": "%(message)s"
-        },
+        "simple": {"format": "%(message)s"},
         "extended": {
             "format": "%(asctime)s - %(name)20s - %(levelname)6s - %(message)s"
         },
         "json": {
             "format": "name: %(name)s, level: %(levelname)s, time: %(asctime)s, message: %(message)s"
-            }
+        },
     },
-
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "level": "DEBUG",
             "formatter": "simple",
-            "stream": "ext://sys.stdout"
+            "stream": "ext://sys.stdout",
         },
-
         "local_file_handler": {
             "class": "logging.handlers.RotatingFileHandler",
             #  "class": "logging.handlers.FileHandler",
@@ -44,10 +40,9 @@ default_config = {
             "maxBytes": 1048576,
             "backupCount": 20,
             "encoding": "utf8",
-            "delay" : True
+            "delay": True,
         },
-
-        #"graylog_gelf": {
+        # "graylog_gelf": {
         #    "class": "pygelf.GelfTcpHandler",
         #    "level": "INFO",
         #    # Obviously a DLS-specific configuration: the graylog server address and port
@@ -59,41 +54,30 @@ default_config = {
         #    "include_extra_fields": True,
         #    "username": getpass.getuser(),
         #    "pid": os.getpid()
-        #}
+        # }
     },
-
     "loggers": {
         # Fine-grained logging configuration for individual modules or classes
         # Use this to set different log levels without changing 'real' code.
-        "myclasses": {
-            "level": "DEBUG",
-            "propagate": True
-        },
-        "usermessages": {
-            "level": "INFO",
-            "propagate": True,
-            "handlers": ["console"]
-        },
-        "debug_log": {
-            "level": "DEBUG",
-            "propagate": True
-        },
+        "myclasses": {"level": "DEBUG", "propagate": True},
+        "usermessages": {"level": "INFO", "propagate": True, "handlers": ["console"]},
+        "debug_log": {"level": "DEBUG", "propagate": True},
     },
-
     "root": {
         # Set the level here to be the default minimum level of log record to be produced
         # If you set a handler to level DEBUG you will need to set either this level, or
         # the level of one of the loggers above to DEBUG or you won't see any DEBUG messages
         "level": "INFO",
-        #"handlers": ["local_file_handler", "graylog_gelf"],
-        #For file only:
+        # "handlers": ["local_file_handler", "graylog_gelf"],
+        # For file only:
         "handlers": ["local_file_handler"],
-    }
+    },
 }
 
 
 class ThreadContextFilter(logging.Filter):
     """A logging context filter to add thread name and ID."""
+
     def filter(self, record):
         record.thread_id = str(threading.current_thread().ident)
         record.thread_name = str(threading.current_thread().name)
@@ -101,9 +85,7 @@ class ThreadContextFilter(logging.Filter):
 
 
 def setup_logging(
-    default_log_config=None,
-    default_level=logging.INFO,
-    env_key='LOG_CFG'
+    default_log_config=None, default_level=logging.INFO, env_key="LOG_CFG"
 ):
     """Setup logging configuration
     
@@ -137,7 +119,7 @@ def setup_logging(
         dict_config = default_config
 
     if logconfig_filename is not None and os.path.exists(logconfig_filename):
-        with open(logconfig_filename, 'rt') as f:
+        with open(logconfig_filename, "rt") as f:
             file_config = json.load(f)
         if file_config is not None:
             dict_config = file_config
@@ -146,4 +128,3 @@ def setup_logging(
         logging.config.dictConfig(dict_config)
     else:
         logging.basicConfig(level=default_level)
-

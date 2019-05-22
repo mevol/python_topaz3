@@ -5,6 +5,7 @@ import logging
 
 from pathlib import Path
 
+
 def get_cc(filename):
     """Extract the cc from the file and return as a float"""
     logging.debug(f"Trying to extract CC from {filename}")
@@ -26,6 +27,9 @@ def get_cc(filename):
     return cc
 
 
-
-if __name__ == '__main__':
-    print(get_cc("/dls/mx-scratch/melanie/for_METRIX/results_20190326/EP_phasing/traced/3N6X/P41212/3N6X_i.lst"))
+if __name__ == "__main__":
+    print(
+        get_cc(
+            "/dls/mx-scratch/melanie/for_METRIX/results_20190326/EP_phasing/traced/3N6X/P41212/3N6X_i.lst"
+        )
+    )

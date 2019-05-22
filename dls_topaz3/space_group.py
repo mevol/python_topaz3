@@ -7,14 +7,15 @@ import logging
 import procrunner
 import sys
 
+
 def find_space_group(text):
     """Open the filename at this path and try to extract a space group. Return space group string."""
 
-    #Get the results which match lines of space group
+    # Get the results which match lines of space group
     potential_lines = re.findall("(?<=[sS]pace [gG]roup)(.*)", text)
     logging.debug(potential_lines)
 
-    #Get results which match the format of a space group - join for easier search and output
+    # Get results which match the format of a space group - join for easier search and output
     potential_groups = re.findall("[A-Z][ 0-9]+", "\n".join(potential_lines))
     logging.debug(potential_groups)
 
@@ -25,7 +26,7 @@ def find_space_group(text):
         logging.warning("Could not find space group")
         raise Exception("Could not find any space groups in text")
 
-    #If there are multiple results, use the first one
+    # If there are multiple results, use the first one
     logging.debug(space_groups[0])
     return space_groups[0]
 
@@ -60,11 +61,13 @@ def mtz_find_space_group(mtzfile):
     # Check input file is of correct type
     mtz_filepath = Path(mtzfile)
     assert mtz_filepath.exists(), f"Could not find file at {mtzfile}"
-    assert mtz_filepath.suffix==".mtz", f"Expected mtz file, found {mtz_filepath}"
+    assert mtz_filepath.suffix == ".mtz", f"Expected mtz file, found {mtz_filepath}"
 
     # Get location of shell script
-    __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    phenix_shell = os.path.join(__location__, 'shell_scripts/phenix_dump.sh')
+    __location__ = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__))
+    )
+    phenix_shell = os.path.join(__location__, "shell_scripts/phenix_dump.sh")
 
     # Build up command list
     command = [phenix_shell, mtz_filepath]
@@ -92,7 +95,7 @@ def mtz_find_space_group(mtzfile):
     return space_group
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     filename = sys.argv[1]
 
@@ -118,6 +121,6 @@ if __name__ == '__main__':
         logging.info("Using text file analysis...")
         print(textfile_find_space_group(abs_path))
 
-    #print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/phenix_output.txt"))
-    #print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log"))
-    #print(mtz_find_space_group("/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"))
+    # print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/phenix_output.txt"))
+    # print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log"))
+    # print(mtz_find_space_group("/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"))
