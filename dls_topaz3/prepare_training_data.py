@@ -1,4 +1,6 @@
 import logging
+import argparse
+import yaml
 
 from pathlib import Path
 from mtz_info import mtz_get_cell
@@ -15,8 +17,8 @@ def prepare_training_data(
     cell_info_path,
     space_group_directory,
     space_group_path,
-    database,
     xyz_limits,
+    database,
     output_directory,
     delete_temp=True,
 ):
@@ -57,10 +59,26 @@ def prepare_training_data(
         raise
 
     try:
+        database_path = Path(database)
+        assert database_path.exists()
+    except:
+        logging.error(f"Could not find database at {database}")
+        raise
+
+    try:
         output_dir = Path(output_directory)
         assert output_dir.exists()
     except:
         logging.error(f"Could not find output directory at {output_directory}")
+        raise
+
+    # Check xyz limits are of correct format
+    try:
+        assert type(xyz_limits) == list or type(xyz_limits) == tuple
+        assert len(xyz_limits) == 3
+        assert all(type(values) == int for values in xyz_limits)
+    except AssertionError:
+        logging.error("xyz_limits muste be provided as a list or tupls of three integer values")
         raise
 
     # Get lists of child directories
@@ -259,20 +277,115 @@ def prepare_training_data(
     return True
 
 
+def params_from_yaml(args):
+    """Extract the parameters for prepare_training_data from a yaml file and return a dict"""
+    # Check the path exists
+    try:
+        config_file_path = Path(args.config_file)
+        assert config_file_path.exists()
+    except Exception:
+        logging.error(f"Could not find config file at {args.config_file}")
+        raise
+
+    # Load the data from the config file
+    try:
+        with open(config_file_path, "r") as f:
+            params = yaml.safe_load(f)
+    except:
+        logging.error(f"Could not extract parameters from yaml file at {config_file_path}")
+
+    if "delete_temp" not in params.keys():
+        params["delete_temp"] = True
+
+    return params
+
+
+def params_from_cmd(args):
+    """Extract the parameters for prepare_training_data from the command line and return a dict"""
+    params = {
+        "phase_dir": args.phase_dir,
+        "cell_info_dir": args.cell_info_dir,
+        "cell_info_path": args.cell_info_path,
+        "space_group_dir": args.space_group_dir,
+        "space_group_path": args.space_group_path,
+        "xyz_limits": args.xyz,
+        "db_path": args.db,
+        "output_dir": args.output_dir,
+        "delete_temp": True,
+    }
+    if args.keep_temp:
+        params["delete_temp"] = False
+
+    return params
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger(name="debug_log")
     userlog = logging.getLogger(name="usermessages")
 
-    prepare_training_data(
-        "/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/EP_phasing/traced",
-        "/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/xia2_stresstest",
-        "DataFiles/AUTOMATIC_DEFAULT_free.mtz",
-        "/dls/mx-scratch/melanie/for_METRIX/results_20190326/AI_training/EP_phasing/traced",
-        "simple_xia2_to_shelxcde.log",
-        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
-        [200, 200, 200],
-        "/dls/science/users/riw56156/topaz_test_data/training_test",
-        True,
+    # Parser for command line interface
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+
+    yaml_parser = subparsers.add_parser("yaml")
+    yaml_parser.add_argument(
+        "config_file", type=str, help="yaml file with configuration information for this program"
     )
+    yaml_parser.set_defaults(func=params_from_yaml)
+
+    cmd_parser = subparsers.add_parser("cmd")
+    cmd_parser.add_argument(
+        "phase_dir", type=str, help="top level directory for phase information"
+    )
+    cmd_parser.add_argument(
+        "cell_info_dir", type=str, help="top level directory for cell info"
+    )
+    cmd_parser.add_argument(
+        "cell_info_path", type=str, help="cell info file within each structure folder"
+    )
+    cmd_parser.add_argument(
+        "space_group_dir", type=str, help="top level directory for space group"
+    )
+    cmd_parser.add_argument(
+        "space_group_path", type=str, help="space group file within each structure folder"
+    )
+    cmd_parser.add_argument(
+        "xyz", type=int, nargs=3, help="xyz size of the output map file"
+    )
+    cmd_parser.add_argument(
+        "db",
+        type=str,
+        help="location of the sqlite3 database to store training information",
+    )
+    cmd_parser.add_argument(
+        "output_dir", type=str, help="directory to output all map files to"
+    )
+    cmd_parser.add_argument(
+        "--keep_temp",
+        action="store_false",
+        help="keep the temporary files after processing",
+    )
+    cmd_parser.set_defaults(func=params_from_cmd)
+
+    # Extract the parameters based on the yaml/command line argument
+    args = parser.parse_args()
+    parameters = args.func(args)
+
+    print(parameters)
+
+    # Execute the command
+    try:
+        prepare_training_data(
+            parameters["phase_dir"],
+            parameters["cell_info_dir"],
+            parameters["cell_info_path"],
+            parameters["space_group_dir"],
+            parameters["space_group_path"],
+            parameters["xyz_limits"],
+            parameters["db_path"],
+            parameters["output_dir"],
+            parameters["delete_temp"],
+        )
+    except KeyError as e:
+        logging.error(f"Could not find parameter {e} to prepare training data")
