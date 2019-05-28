@@ -78,7 +78,9 @@ def prepare_training_data(
         assert len(xyz_limits) == 3
         assert all(type(values) == int for values in xyz_limits)
     except AssertionError:
-        logging.error("xyz_limits muste be provided as a list or tupls of three integer values")
+        logging.error(
+            "xyz_limits muste be provided as a list or tupls of three integer values"
+        )
         raise
 
     # Get lists of child directories
@@ -292,7 +294,9 @@ def params_from_yaml(args):
         with open(config_file_path, "r") as f:
             params = yaml.safe_load(f)
     except:
-        logging.error(f"Could not extract parameters from yaml file at {config_file_path}")
+        logging.error(
+            f"Could not extract parameters from yaml file at {config_file_path}"
+        )
 
     if "delete_temp" not in params.keys():
         params["delete_temp"] = True
@@ -318,6 +322,7 @@ def params_from_cmd(args):
 
     return params
 
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
@@ -330,7 +335,9 @@ if __name__ == "__main__":
 
     yaml_parser = subparsers.add_parser("yaml")
     yaml_parser.add_argument(
-        "config_file", type=str, help="yaml file with configuration information for this program"
+        "config_file",
+        type=str,
+        help="yaml file with configuration information for this program",
     )
     yaml_parser.set_defaults(func=params_from_yaml)
 
@@ -348,7 +355,9 @@ if __name__ == "__main__":
         "space_group_dir", type=str, help="top level directory for space group"
     )
     cmd_parser.add_argument(
-        "space_group_path", type=str, help="space group file within each structure folder"
+        "space_group_path",
+        type=str,
+        help="space group file within each structure folder",
     )
     cmd_parser.add_argument(
         "xyz", type=int, nargs=3, help="xyz size of the output map file"
