@@ -62,7 +62,7 @@ def prepare_training_database(database, results):
     return True
 
 
-def prepare_labels_database(database, table, new_table):
+def prepare_labels_database(database):
     """Take the existing database and convert it to a clear name and labels database which can be easily read for ai training"""
     # Check database exists
     assert Path(database).exists(), f"Could not find database at {database}"
@@ -76,7 +76,7 @@ def prepare_labels_database(database, table, new_table):
         raise
 
     # Read table into pandas dataframe
-    data = pandas.read_sql(f"SELECT * FROM {table}", conn)
+    data = pandas.read_sql(f"SELECT * FROM ai_training", conn)
 
     # Create the new dataframe
     sorted_data_original = [{"Name": data["Name"][index], "Label": data["original_score"][index]} for index in range(len(data["Name"]))]
@@ -86,16 +86,16 @@ def prepare_labels_database(database, table, new_table):
 
     # Empty an existing new table
     try:
-        cursor.execute(f"DROP TABLE IF EXISTS {new_table}")
+        cursor.execute(f"DROP TABLE IF EXISTS ai_labels")
     except Exception:
         logging.error("Could not find or create new table")
         raise
 
     # Put the sorted dataframe in the new table
     try:
-        sorted_dataframe.to_sql(new_table, conn)
+        sorted_dataframe.to_sql("ai_labels", conn)
     except:
-        logging.error(f"Could not write sorted dataframe to {new_table}")
+        logging.error(f"Could not write sorted dataframe to ai_labels")
         raise
 
     logging.info(f"Successful write of sorted table")
@@ -112,6 +112,4 @@ if __name__ == "__main__":
 
     prepare_labels_database(
         "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
-        "ai_training",
-        "ai_labels",
     )

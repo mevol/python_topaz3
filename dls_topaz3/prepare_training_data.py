@@ -270,7 +270,7 @@ def prepare_training_data(
 
     # Put in database
     prepare_training_database(str(database_path), cc_results)
-    prepare_labels_database(str(database_path), "ai_training", "ai_labels")
+    prepare_labels_database(str(database_path))
 
     # Delete temporary files if requested
     if delete_temp == True:
