@@ -2,6 +2,7 @@
 
 import sqlite3
 import logging
+import pandas
 
 from pathlib import Path
 
@@ -61,9 +62,56 @@ def prepare_training_database(database, results):
     return True
 
 
+def prepare_labels_database(database, table, new_table):
+    """Take the existing database and convert it to a clear name and labels database which can be easily read for ai training"""
+    # Check database exists
+    assert Path(database).exists(), f"Could not find database at {database}"
+
+    # Initiate connection to the database
+    try:
+        conn = sqlite3.connect(database)
+        cursor = conn.cursor()
+    except Exception:
+        logging.error(f"Could not connect to database at {database}")
+        raise
+
+    # Read table into pandas dataframe
+    data = pandas.read_sql(f"SELECT * FROM {table}", conn)
+
+    # Create the new dataframe
+    sorted_data_original = [{"Name": data["Name"][index], "Label": data["original_score"][index]} for index in range(len(data["Name"]))]
+    sorted_data_inverse = [{"Name": f"{data['Name'][index]}_i", "Label": data["inverse_score"][index]} for index in range(len(data["Name"]))]
+    new_dataframe = pandas.DataFrame(sorted_data_original + sorted_data_inverse)
+    sorted_dataframe = new_dataframe.set_index("Name").sort_index()
+
+    # Empty an existing new table
+    try:
+        cursor.execute(f"DROP TABLE IF EXISTS {new_table}")
+    except Exception:
+        logging.error("Could not find or create new table")
+        raise
+
+    # Put the sorted dataframe in the new table
+    try:
+        sorted_dataframe.to_sql(new_table, conn)
+    except:
+        logging.error(f"Could not write sorted dataframe to {new_table}")
+        raise
+
+    logging.info(f"Successful write of sorted table")
+
+    return True
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     prepare_training_database(
         "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
         [("ABC4", 5.0, 11, False, True), ("A3C4", 79, 2.1, True, False)],
+    )
+
+    prepare_labels_database(
+        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
+        "ai_training",
+        "ai_labels",
     )

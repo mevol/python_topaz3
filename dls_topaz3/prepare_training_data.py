@@ -8,7 +8,7 @@ from space_group import textfile_find_space_group, mtz_find_space_group
 from conversions import phase_to_map
 from delete_temp_files import delete_temp_files
 from get_cc import get_cc
-from database_ops import prepare_training_database
+from database_ops import prepare_training_database, prepare_labels_database
 
 
 def prepare_training_data(
@@ -270,6 +270,7 @@ def prepare_training_data(
 
     # Put in database
     prepare_training_database(str(database_path), cc_results)
+    prepare_labels_database(str(database_path), "ai_training", "ai_labels")
 
     # Delete temporary files if requested
     if delete_temp == True:
