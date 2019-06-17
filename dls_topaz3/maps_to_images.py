@@ -2,6 +2,12 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
+import sys
+import logging
+from pathlib import Path
+import mrcfile
+from PIL import Image
 
 
 def slice_map(volume, slices_per_axis):
@@ -16,7 +22,7 @@ def slice_map(volume, slices_per_axis):
 
     # Array to return the images
     image_stack = np.zeros((length, length, slices_per_axis*3))
-    print(image_stack.shape)
+    #print(image_stack.shape)
 
     # Get x slices and put in image_stack
     for slice in range(slices_per_axis):
@@ -51,26 +57,78 @@ def sphere(shape, radius, position):
     # the inner part of the sphere will have distance below 1
     return arr <= 1.0
 
+def directory_to_images(input_directory, slices_per_axis, output_directory):
+    """Get all the map files in the input directory, slice them and save with unique names in the output directory"""
+    logging.info(f"Slicing maps from {input_directory} with {slices_per_axis} slices on each axis into {output_directory}")
+
+    try:
+        assert Path(input_directory).exists()
+    except Exception as e:
+        logging.error(f"Could not find input directory {input_directory}")
+        raise
+
+    input_all_files = [file for file in Path(input_directory).iterdir()]
+    input_maps = [file for file in input_all_files if (Path(file).suffix == ".map") ]
+    logging.info(f"Got {len(input_maps)} input maps")
+
+    # Load each file, get the slices and save them to the output directory
+    for map in input_maps:
+        try:
+            with mrcfile.open(map) as mrc:
+                volume = mrc.data
+        except Exception as e:
+            logging.error(f"Could not load map data from {map}")
+            raise
+
+        # Slice the volume into images
+        image_slices = slice_map(volume, slices_per_axis)
+
+        # Iterate through images, scale them and save them in output_directory
+        for slice_num in range(image_slices.shape[2]):
+            # Get slice
+            slice = image_slices[:, :, slice_num]
+            # Scale slice
+            slice_scaled = ((slice - slice.min()) / (slice.max() - slice.min())) * 255.0
+            # Round to the nearest integer
+            slice_scaled_int = np.rint(slice_scaled)
+
+            # Save image
+            try:
+                output_file = Path(output_directory) / Path(f"{map.stem}_{slice_num}.png")
+                Image.fromarray(slice_scaled_int).convert("L").save(output_file)
+            except Exception as e:
+                logging.error(f"Could not create image file in {output_directory}")
+
+    logging.info(f"Finished creating images in {output_directory}")
+
 if __name__ == "__main__":
 
-    s1 = sphere((201, 201, 201), 80, (100, 100, 100))
+    logging.basicConfig(level=logging.INFO)
 
-    stack1 = slice_map(s1, 1)
-    print(stack1.shape)
-    stack2 = slice_map(s1, 2)
-    print(stack2.shape)
-    stack3 = slice_map(s1, 3)
-    print(stack3.shape)
+    #directory_to_images("/dls/science/users/riw56156/topaz_test_data/input_files", 20, "/dls/science/users/riw56156/topaz_test_data/output_files")
 
-    fig, ((ax11, ax12, ax13), (ax21, ax22, ax23), (ax31, ax32, ax33)) = plt.subplots(3, 3)
+    if sys.argv[1] == "--test":
+        s1 = sphere((201, 201, 201), 80, (100, 100, 100))
 
-    ax11.imshow(stack1[:, :, 0])
+        stack1 = slice_map(s1, 1)
+        print(stack1.shape)
+        stack2 = slice_map(s1, 2)
+        print(stack2.shape)
+        stack3 = slice_map(s1, 3)
+        print(stack3.shape)
 
-    ax21.imshow(stack2[:, :, 0])
-    ax22.imshow(stack2[:, :, 1])
+        fig, ((ax11, ax12, ax13), (ax21, ax22, ax23), (ax31, ax32, ax33)) = plt.subplots(3, 3)
 
-    ax31.imshow(stack3[:, :, 0])
-    ax32.imshow(stack3[:, :, 1])
-    ax33.imshow(stack3[:, :, 2])
+        ax11.imshow(stack1[:, :, 0])
 
-    plt.show()
+        ax21.imshow(stack2[:, :, 0])
+        ax22.imshow(stack2[:, :, 1])
+
+        ax31.imshow(stack3[:, :, 0])
+        ax32.imshow(stack3[:, :, 1])
+        ax33.imshow(stack3[:, :, 2])
+
+        plt.show()
+
+    else:
+        directory_to_images(sys.argv[1], 20, sys.argv[2])
