@@ -95,12 +95,12 @@ def evaluate(
     predictions_decoded = [int(pred[1] > pred[0]) for pred in predictions]
 
     # Create an output directory if it doesn't exist
-    output_dir_path = Path(output_dir) / "evaluations"
+    output_dir_path = Path(output_dir)
     if not output_dir_path.exists():
         # Make one
         try:
             os.mkdir(output_dir_path)
-            logging.info(f"Created new evaluations directory in {output_dir_path}")
+            logging.info(f"Created new directory in {output_dir_path}")
         except Exception as e:
             logging.error(
                 f"Could not create directory at {output_dir_path}.\n"
