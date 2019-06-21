@@ -124,3 +124,5 @@ phase_to_map("/location/of/phase/file/structure.phs",
              [200, 200, 200]
              "/location/of/output/output.map",)
 ```
+
+Changes to this project should use pre-commit with flake8 and black checks
