@@ -8,25 +8,19 @@ import pandas
 import re
 
 # encode text category labels
-from sklearn.preprocessing import LabelEncoder
 from pathlib import Path
-import matplotlib.pyplot as plt
-from keras.preprocessing.image import (
-    ImageDataGenerator,
-    load_img,
-    img_to_array,
-    array_to_img,
-)
+from keras.preprocessing.image import ImageDataGenerator
 import keras.models
 from sklearn.metrics import classification_report, confusion_matrix
 
 IMG_DIM = (201, 201)
 
+
 def evaluate(model_file: str, test_dir: str, database_file: str):
     # Load model
     try:
         model = keras.models.load_model(model_file)
-    except:
+    except Exception:
         logging.error(f"Failed to load model from {model_file}")
         raise
 
@@ -38,13 +32,9 @@ def evaluate(model_file: str, test_dir: str, database_file: str):
     print(f"Found {len(train_files)} files for training")
 
     try:
-        conn = sqlite3.connect(
-            database_file
-        )
+        conn = sqlite3.connect(database_file)
     except Exception:
-        logging.error(
-            f"Could not connect to database at {database_file}"
-        )
+        logging.error(f"Could not connect to database at {database_file}")
         raise
 
     # Read table into pandas dataframe
@@ -55,9 +45,7 @@ def evaluate(model_file: str, test_dir: str, database_file: str):
     train_labels = [data_indexed.at[name, "Label"] for name in names]
 
     # Create training dataframe
-    testing_dataframe = pandas.DataFrame(
-        {"Files": train_files, "Labels": train_labels}
-    )
+    testing_dataframe = pandas.DataFrame({"Files": train_files, "Labels": train_labels})
 
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
 
@@ -75,8 +63,7 @@ def evaluate(model_file: str, test_dir: str, database_file: str):
     )
 
     predictions = model.predict_generator(
-        test_generator,
-        steps=int(len(testing_dataframe["Files"])/test_batch_size),
+        test_generator, steps=int(len(testing_dataframe["Files"]) / test_batch_size)
     )
 
     # Per image analysis
@@ -92,11 +79,54 @@ def evaluate(model_file: str, test_dir: str, database_file: str):
     print(confusion_matrix(predictions_decoded, testing_dataframe["Labels"]))
 
     # Per structure analysis
-    predictions_1 = predictions[0:60, 0]
-    predictions_0 = predictions[0:60, 1]
+    predictions_1 = predictions[0:60, 1]
+    predictions_0 = predictions[0:60, 0]
 
-    print(np.mean(predictions_1))
     print(np.mean(predictions_0))
+    print(np.mean(predictions_1))
+
+    predictions_structure_avg = np.array(
+        [
+            (
+                np.mean(predictions[60 * i : 60 * i + 60, 0]),
+                np.mean(predictions[60 * i : 60 * i + 60, 1]),
+            )
+            for i in range(int(len(predictions) / 60))
+        ]
+    )
+
+    predictions_by_result = np.array(
+        [(int(pred[0] > pred[1]), int(pred[1] > pred[0])) for pred in predictions]
+    )
+    predictions_structure_count = np.array(
+        [
+            (
+                np.sum(predictions_by_result[60 * i : 60 * i + 60, 0]) / 60,
+                np.sum(predictions_by_result[60 * i : 60 * i + 60, 1]) / 60,
+            )
+            for i in range(int(len(predictions) / 60))
+        ]
+    )
+
+    predictions_struct_avg_flat = [
+        int(pred > 0.5) for pred in predictions_structure_avg[:, 1]
+    ]
+    predictions_struct_count_flat = [
+        int(pred > 0.5) for pred in predictions_structure_count[:, 1]
+    ]
+
+    labels = testing_dataframe["Labels"]
+    testing_info_by_structure = [labels[60 * i] for i in range(int(len(labels) / 60))]
+
+    print("Classification by structure using average:")
+    print(classification_report(predictions_struct_avg_flat, testing_info_by_structure))
+    print(confusion_matrix(predictions_struct_avg_flat, testing_info_by_structure))
+
+    print("Classification by structure using count:")
+    print(
+        classification_report(predictions_struct_count_flat, testing_info_by_structure)
+    )
+    print(confusion_matrix(predictions_struct_count_flat, testing_info_by_structure))
 
     return True
 
@@ -104,8 +134,4 @@ def evaluate(model_file: str, test_dir: str, database_file: str):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    evaluate(
-        sys.argv[1],
-        sys.argv[2],
-        sys.argv[3]
-    )
+    evaluate(sys.argv[1], sys.argv[2], sys.argv[3])
