@@ -23,6 +23,7 @@ def get_cc(filename):
             cc = float(cc_string[0].replace(" ", ""))
     except Exception:
         logging.error(f"Could not find CC in {filepath}")
+        raise
 
     return cc
 

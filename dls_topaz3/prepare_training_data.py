@@ -254,6 +254,7 @@ def prepare_training_data(
             logging.error(
                 f"Could not get CC info of {struct} in space group {space_group_dict[struct]}"
             )
+            raise
 
     # Generate list of results
     cc_results = []
@@ -298,6 +299,7 @@ def params_from_yaml(args):
         logging.error(
             f"Could not extract parameters from yaml file at {config_file_path}"
         )
+        raise
 
     if "delete_temp" not in params.keys():
         params["delete_temp"] = True

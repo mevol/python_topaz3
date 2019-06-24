@@ -336,6 +336,7 @@ def files_to_map(
         )
     except Exception:
         log.error("Could not convert phase file to map")
+        raise
 
     userlog.info("Conversion complete")
 
