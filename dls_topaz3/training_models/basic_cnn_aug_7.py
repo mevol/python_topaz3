@@ -4,6 +4,14 @@ and softmax activation layer
 Also implement the evaluation stage at the end of each model training step
 """
 
+# Necessary to make the run as consistent as possible
+from numpy.random import seed
+
+seed(1)
+from tensorflow import set_random_seed
+
+set_random_seed(2)
+
 import logging
 import sqlite3
 import re
@@ -11,6 +19,7 @@ from pathlib import Path
 import os
 import sys
 from datetime import datetime
+import yaml
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -19,7 +28,7 @@ import keras
 import pandas
 from plot_history import history_to_csv
 from k_fold_boundaries import k_fold_boundaries
-from evaluate_model import evaluate
+from dls_topaz3.evaluate_model import evaluate
 
 
 IMG_DIM = (201, 201)
@@ -195,13 +204,25 @@ def train(training_dir: str, database_file: str, test_dir: str, output_dir: str)
 
         # Make evaluation folder
         evaluation_dir_path = str(evaluations_path / f"evaluation_{k}")
-        os.mkdir(evaluation_dir_path)
+        if not Path(evaluation_dir_path).exists():
+            os.mkdir(evaluation_dir_path)
         evaluate(
             str(models_path / f"model_{k}.h5"),
             test_dir,
             database_file,
             evaluation_dir_path,
         )
+
+    # Log the key information about the model and run
+    key_info = {
+        "Epochs": epochs,
+        "Folds": k_folds,
+        "Runs": runs,
+        "Training files (Total)": len(train_files),
+        "Model": model.get_config(),
+    }
+    with open(output_dir_path / "info.yaml", "w") as f:
+        yaml.dump(key_info, f)
 
 
 if __name__ == "__main__":
