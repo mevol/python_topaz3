@@ -79,8 +79,14 @@ def prepare_labels_database(database):
     data = pandas.read_sql(f"SELECT * FROM ai_training", conn)
 
     # Create the new dataframe
-    sorted_data_original = [{"Name": data["Name"][index], "Label": data["original_score"][index]} for index in range(len(data["Name"]))]
-    sorted_data_inverse = [{"Name": f"{data['Name'][index]}_i", "Label": data["inverse_score"][index]} for index in range(len(data["Name"]))]
+    sorted_data_original = [
+        {"Name": data["Name"][index], "Label": data["original_score"][index]}
+        for index in range(len(data["Name"]))
+    ]
+    sorted_data_inverse = [
+        {"Name": f"{data['Name'][index]}_i", "Label": data["inverse_score"][index]}
+        for index in range(len(data["Name"]))
+    ]
     new_dataframe = pandas.DataFrame(sorted_data_original + sorted_data_inverse)
     sorted_dataframe = new_dataframe.set_index("Name").sort_index()
 
@@ -94,7 +100,7 @@ def prepare_labels_database(database):
     # Put the sorted dataframe in the new table
     try:
         sorted_dataframe.to_sql("ai_labels", conn)
-    except:
+    except Exception:
         logging.error(f"Could not write sorted dataframe to ai_labels")
         raise
 
@@ -111,5 +117,5 @@ if __name__ == "__main__":
     )
 
     prepare_labels_database(
-        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
+        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite"
     )

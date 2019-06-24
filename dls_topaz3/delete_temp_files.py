@@ -11,7 +11,7 @@ def list_temp_files(directory):
     try:
         dir_path = Path(directory)
         assert dir_path.exists()
-    except:
+    except Exception:
         raise Exception(f"Expected absolute path to valid directory, got {directory}")
 
     temps = glob.glob(str(dir_path / "*temp*"))
@@ -27,7 +27,7 @@ def delete_file(filename):
         file_path = Path(filename)
         assert file_path.exists(), f"Could not find file to delete at {file_path}"
         os.remove(file_path)
-    except:
+    except Exception:
         logging.error(f"Could not delete file at {filename}")
         raise
 
@@ -39,13 +39,13 @@ def delete_temp_files(directory):
     logging.debug(f"Deleting all files in {directory}")
     try:
         temp_files = list_temp_files(directory)
-    except:
+    except Exception:
         raise
 
     try:
         for file in temp_files:
             delete_file(file)
-    except:
+    except Exception:
         raise
 
     return True

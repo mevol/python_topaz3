@@ -1,5 +1,5 @@
-"""This file contains the main script for converting phase information into a regularly sized electron density
- map using tools from CCP4"""
+"""This file contains the main script for converting phase information
+into a regularly sized electron density map using tools from CCP4"""
 
 import procrunner
 import os
@@ -15,11 +15,12 @@ userlog = logging.getLogger(name="usermessages")
 
 
 def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
-    """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file and return the new file location."""
+    """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file
+     and return the new file location."""
     try:
         phase_filepath = Path(phase_filename)
         output_filepath = Path(output_filename)
-    except:
+    except Exception:
         raise Exception("Inputs must be paths of input phase file and output mtz file.")
 
     userlog.debug(f"Converting phase to mtz")
@@ -40,8 +41,8 @@ def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
     try:
         assert len(cell_info) == 6
         # Will raise error if values are not floats
-        test_float = [float(value) for value in cell_info]
-    except:
+        assert [float(value) for value in cell_info]
+    except Exception:
         raise Exception(
             "Cell info must be list of 6 floating numbers for the cell lengths and angles."
         )
@@ -104,7 +105,7 @@ def mtz_to_map(mtz_filename, output_filename):
     try:
         mtz_filepath = Path(mtz_filename)
         output_filepath = Path(output_filename)
-    except:
+    except Exception:
         raise Exception("Inputs must be paths of input mtz file and output map file.")
 
     userlog.debug(f"Converting mtz to map")
@@ -172,7 +173,7 @@ def map_to_map(map_filename, xyz_limits, space_group, output_filename):
     try:
         map_filepath = Path(map_filename)
         output_filepath = Path(output_filename)
-    except:
+    except Exception:
         raise Exception("Inputs must be paths of input map file and output map file.")
 
     userlog.debug(f"Converting map to map")
@@ -194,7 +195,7 @@ def map_to_map(map_filename, xyz_limits, space_group, output_filename):
         assert len(xyz_limits) == 3
         # Will raise error if values are not integers
         assert all(type(value) == int for value in xyz_limits)
-    except:
+    except Exception:
         raise Exception(
             "XYZ Limits must be list of 3 integers for the XYZ dimension of the new map."
         )
@@ -253,7 +254,7 @@ def phase_to_map(phase_filename, cell_info, space_group, xyz_limits, output_file
     try:
         phase_filepath = Path(phase_filename)
         output_filepath = Path(output_filename)
-    except:
+    except Exception:
         raise Exception("Inputs must be paths of input phase file and output map file.")
 
     assert (
@@ -299,7 +300,7 @@ def files_to_map(
         output_filepath = Path(output_filename)
         cell_info_filepath = Path(cell_info_filename)
         space_group_filepath = Path(space_group_filename)
-    except:
+    except Exception:
         raise Exception("Inputs must be absolute paths to files.")
 
     # Check incoming files (which won't be checked later)
@@ -314,7 +315,7 @@ def files_to_map(
     log.info(f"Getting cell info from {cell_info_filepath}")
     try:
         cell_info = mtz_get_cell(cell_info_filepath)
-    except:
+    except Exception:
         log.error(f"Could not get cell information from {cell_info_filepath}")
         raise
 
@@ -324,7 +325,7 @@ def files_to_map(
             space_group = mtz_find_space_group(space_group_filepath)
         else:
             space_group = textfile_find_space_group(space_group_filepath)
-    except:
+    except Exception:
         log.error(f"Could not get space info from {space_group_filepath}")
         raise
 
@@ -333,7 +334,7 @@ def files_to_map(
         phase_to_map(
             phase_filepath, cell_info, space_group, xyz_limits, output_filepath
         )
-    except:
+    except Exception:
         log.error("Could not convert phase file to map")
 
     userlog.info("Conversion complete")

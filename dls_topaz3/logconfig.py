@@ -1,14 +1,13 @@
 """ logconfig
 
 This is essentially a template which can be copied into a python project and
-used to easily achieve a good practice of logging. Modify the local copy as per 
+used to easily achieve a good practice of logging. Modify the local copy as per
 the project or site requirements.
 """
 
 import os
 import json
 import logging.config
-import getpass
 import threading
 
 
@@ -88,24 +87,24 @@ def setup_logging(
     default_log_config=None, default_level=logging.INFO, env_key="LOG_CFG"
 ):
     """Setup logging configuration
-    
+
     Call this only once from the application main() function or __main__ module!
-    
+
     This will configure the python logging module based on a logging configuration
     in the following order of priority:
-       
+
        1. Log configuration file found in the environment variable specified in the `env_key` argument.
        2. Log configuration file found in the `default_log_config` argument.
        3. Default log configuration found in the `logconfig.default_config` dict.
        4. If all of the above fails: basicConfig is called with the `default_level` argument.
-    
+
     Args:
         default_log_config (Optional[str]): Path to log configuration file.
         env_key (Optional[str]): Environment variable that can optionally contain
             a path to a configuration file.
         default_level (int): logging level to set as default. Ignored if a log
             configuration is found elsewhere.
- 
+
     Returns: None
     """
     dict_config = None

@@ -63,12 +63,12 @@ def mtz_get_group(mtz_filename):
 
     try:
         group = int(xdata[-2])
-    except:
+    except Exception:
         raise Exception("Could not extract group number from xdata")
 
     try:
         assert group == xdata[-2]
-    except:
+    except Exception:
         # print("Exception")
         raise Exception(f"Expected integer group number, got {group} from {xdata[-2]}")
 

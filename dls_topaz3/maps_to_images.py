@@ -2,7 +2,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
 import sys
 import logging
 from pathlib import Path
@@ -21,22 +20,29 @@ def slice_map(volume, slices_per_axis):
     length = volume.shape[0]
 
     # Array to return the images
-    image_stack = np.zeros((length, length, slices_per_axis*3))
-    #print(image_stack.shape)
+    image_stack = np.zeros((length, length, slices_per_axis * 3))
+    # print(image_stack.shape)
 
     # Get x slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice] = volume[(slice+1)*int((length)/(slices_per_axis+1)), :, :]
+        image_stack[:, :, slice] = volume[
+            (slice + 1) * int((length) / (slices_per_axis + 1)), :, :
+        ]
 
     # Get y slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice + slices_per_axis] = volume[:, (slice+1)*int((length)/(slices_per_axis+1)), :]
+        image_stack[:, :, slice + slices_per_axis] = volume[
+            :, (slice + 1) * int((length) / (slices_per_axis + 1)), :
+        ]
 
     # Get z slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice + (slices_per_axis*2)] = volume[:, :, (slice+1)*int((length)/(slices_per_axis+1))]
+        image_stack[:, :, slice + (slices_per_axis * 2)] = volume[
+            :, :, (slice + 1) * int((length) / (slices_per_axis + 1))
+        ]
 
     return image_stack
+
 
 def sphere(shape, radius, position):
     """Test function from stack overflow to create a sphere"""
@@ -53,22 +59,25 @@ def sphere(shape, radius, position):
     # scaled by the radius
     arr = np.zeros(shape, dtype=float)
     for x_i, semisize in zip(position, semisizes):
-        arr += (np.abs(x_i / semisize) ** 2)
+        arr += np.abs(x_i / semisize) ** 2
     # the inner part of the sphere will have distance below 1
     return arr <= 1.0
 
+
 def directory_to_images(input_directory, slices_per_axis, output_directory):
     """Get all the map files in the input directory, slice them and save with unique names in the output directory"""
-    logging.info(f"Slicing maps from {input_directory} with {slices_per_axis} slices on each axis into {output_directory}")
+    logging.info(
+        f"Slicing maps from {input_directory} with {slices_per_axis} slices on each axis into {output_directory}"
+    )
 
     try:
         assert Path(input_directory).exists()
-    except Exception as e:
+    except Exception:
         logging.error(f"Could not find input directory {input_directory}")
         raise
 
     input_all_files = [file for file in Path(input_directory).iterdir()]
-    input_maps = [file for file in input_all_files if (Path(file).suffix == ".map") ]
+    input_maps = [file for file in input_all_files if (Path(file).suffix == ".map")]
     logging.info(f"Got {len(input_maps)} input maps")
 
     # Load each file, get the slices and save them to the output directory
@@ -76,7 +85,7 @@ def directory_to_images(input_directory, slices_per_axis, output_directory):
         try:
             with mrcfile.open(map) as mrc:
                 volume = mrc.data
-        except Exception as e:
+        except Exception:
             logging.error(f"Could not load map data from {map}")
             raise
 
@@ -94,12 +103,15 @@ def directory_to_images(input_directory, slices_per_axis, output_directory):
 
             # Save image
             try:
-                output_file = Path(output_directory) / Path(f"{map.stem}_{slice_num}.png")
+                output_file = Path(output_directory) / Path(
+                    f"{map.stem}_{slice_num}.png"
+                )
                 Image.fromarray(slice_scaled_int).convert("L").save(output_file)
-            except Exception as e:
+            except Exception:
                 logging.error(f"Could not create image file in {output_directory}")
 
     logging.info(f"Finished creating images in {output_directory}")
+
 
 if __name__ == "__main__":
 
@@ -115,7 +127,11 @@ if __name__ == "__main__":
         stack3 = slice_map(s1, 3)
         print(stack3.shape)
 
-        fig, ((ax11, ax12, ax13), (ax21, ax22, ax23), (ax31, ax32, ax33)) = plt.subplots(3, 3)
+        fig, (
+            (ax11, ax12, ax13),
+            (ax21, ax22, ax23),
+            (ax31, ax32, ax33),
+        ) = plt.subplots(3, 3)
 
         ax11.imshow(stack1[:, :, 0])
 

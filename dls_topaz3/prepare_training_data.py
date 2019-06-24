@@ -31,21 +31,21 @@ def prepare_training_data(
     try:
         phase_dir = Path(phase_directory)
         assert phase_dir.exists()
-    except:
+    except Exception:
         logging.error(f"Could not find phase directory at {phase_directory}")
         raise
 
     try:
         cell_info_dir = Path(cell_info_directory)
         assert cell_info_dir.exists()
-    except:
+    except Exception:
         logging.error(f"Could not find cell info directory at {cell_info_directory}")
         raise
 
     try:
         space_group_dir = Path(space_group_directory)
         assert space_group_dir.exists()
-    except:
+    except Exception:
         logging.error(
             f"Could not find space group directory at {space_group_directory}"
         )
@@ -54,21 +54,21 @@ def prepare_training_data(
     try:
         database_path = Path(database)
         assert database_path.exists()
-    except:
+    except Exception:
         logging.error(f"Could not find database at {database}")
         raise
 
     try:
         database_path = Path(database)
         assert database_path.exists()
-    except:
+    except Exception:
         logging.error(f"Could not find database at {database}")
         raise
 
     try:
         output_dir = Path(output_directory)
         assert output_dir.exists()
-    except:
+    except Exception:
         logging.error(f"Could not find output directory at {output_directory}")
         raise
 
@@ -111,26 +111,26 @@ def prepare_training_data(
         try:
             cell_info_file = cell_info_dir / Path(struct) / Path(cell_info_path)
             assert cell_info_file.exists()
-        except:
+        except Exception:
             logging.error(f"Could not find cell info file at {cell_info_dir}")
             raise
 
         try:
             cell_info_dict[struct] = mtz_get_cell(cell_info_file)
-        except:
+        except Exception:
             logging.error(f"Could not get cell info from {cell_info_file}")
             raise
 
         try:
             space_group_file = space_group_dir / Path(struct) / Path(space_group_path)
             assert space_group_file.exists()
-        except:
+        except Exception:
             logging.error(f"Could not find space group file at {space_group_dir}")
             raise
 
         try:
             space_group_dict[struct] = find_space_group(space_group_file)
-        except:
+        except Exception:
             logging.error(f"Could not get space group from {space_group_file}")
             raise
 
@@ -169,7 +169,7 @@ def prepare_training_data(
 
             assert original_hand.exists(), f"Could not find original hand for {struct}"
             assert inverse_hand.exists(), f"Could not find inverse hand for {struct}"
-        except:
+        except Exception:
             logging.error(
                 f"Could not find phase files of {struct} in space group {space_group_dict[struct]}"
             )
@@ -184,7 +184,7 @@ def prepare_training_data(
                 xyz_limits,
                 output_dir / (struct + ".map"),
             )
-        except:
+        except Exception:
             logging.error(f"Could not convert original hand for {struct}")
             raise
 
@@ -197,7 +197,7 @@ def prepare_training_data(
                 xyz_limits,
                 output_dir / (struct + "_i.map"),
             )
-        except:
+        except Exception:
             logging.error(f"Could not convert original hand for {struct}")
             raise
 
@@ -241,7 +241,7 @@ def prepare_training_data(
 
             assert original_hand.exists(), f"Could not find original hand for {struct}"
             assert inverse_hand.exists(), f"Could not find inverse hand for {struct}"
-        except:
+        except Exception:
             logging.error(
                 f"Could not find lst files of {struct} in space group {space_group_dict[struct]}"
             )
@@ -250,7 +250,7 @@ def prepare_training_data(
         try:
             cc_original_dict[struct] = get_cc(original_hand)
             cc_inverse_dict[struct] = get_cc(inverse_hand)
-        except:
+        except Exception:
             logging.error(
                 f"Could not get CC info of {struct} in space group {space_group_dict[struct]}"
             )
@@ -294,7 +294,7 @@ def params_from_yaml(args):
     try:
         with open(config_file_path, "r") as f:
             params = yaml.safe_load(f)
-    except:
+    except Exception:
         logging.error(
             f"Could not extract parameters from yaml file at {config_file_path}"
         )
