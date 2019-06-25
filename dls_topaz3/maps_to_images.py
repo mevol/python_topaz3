@@ -20,24 +20,24 @@ def slice_map(volume, slices_per_axis):
     length = volume.shape[0]
 
     # Array to return the images
-    image_stack = np.zeros((length, length, slices_per_axis * 3))
+    image_stack = np.zeros((slices_per_axis * 3, length, length))
     # print(image_stack.shape)
 
     # Get x slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice] = volume[
+        image_stack[slice, :, :] = volume[
             (slice + 1) * int((length) / (slices_per_axis + 1)), :, :
         ]
 
     # Get y slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice + slices_per_axis] = volume[
+        image_stack[slice + slices_per_axis, :, :] = volume[
             :, (slice + 1) * int((length) / (slices_per_axis + 1)), :
         ]
 
     # Get z slices and put in image_stack
     for slice in range(slices_per_axis):
-        image_stack[:, :, slice + (slices_per_axis * 2)] = volume[
+        image_stack[slice + (slices_per_axis * 2), :, :] = volume[
             :, :, (slice + 1) * int((length) / (slices_per_axis + 1))
         ]
 
@@ -93,9 +93,9 @@ def directory_to_images(input_directory, slices_per_axis, output_directory):
         image_slices = slice_map(volume, slices_per_axis)
 
         # Iterate through images, scale them and save them in output_directory
-        for slice_num in range(image_slices.shape[2]):
+        for slice_num in range(image_slices.shape[0]):
             # Get slice
-            slice = image_slices[:, :, slice_num]
+            slice = image_slices[slice_num, :, :]
             # Scale slice
             slice_scaled = ((slice - slice.min()) / (slice.max() - slice.min())) * 255.0
             # Round to the nearest integer
@@ -133,14 +133,14 @@ if __name__ == "__main__":
             (ax31, ax32, ax33),
         ) = plt.subplots(3, 3)
 
-        ax11.imshow(stack1[:, :, 0])
+        ax11.imshow(stack1[0, :, :])
 
-        ax21.imshow(stack2[:, :, 0])
-        ax22.imshow(stack2[:, :, 1])
+        ax21.imshow(stack2[0, :, :])
+        ax22.imshow(stack2[1, :, :])
 
-        ax31.imshow(stack3[:, :, 0])
-        ax32.imshow(stack3[:, :, 1])
-        ax33.imshow(stack3[:, :, 2])
+        ax31.imshow(stack3[0, :, :])
+        ax32.imshow(stack3[1, :, :])
+        ax33.imshow(stack3[2, :, :])
 
         plt.show()
 
