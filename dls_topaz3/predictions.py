@@ -4,9 +4,11 @@ images from a model and outputting the predictions in a useful format"""
 import sys
 import logging
 import mrcfile
+import json
 import numpy as np
 import keras.models
 from dls_topaz3.maps_to_images import slice_map
+from pathlib import Path
 
 IMG_DIM = (201, 201)
 
@@ -80,9 +82,58 @@ def predictions_from_map(
     return predictions
 
 
+def predict_original_inverse(
+    original_map_file: str,
+    inverse_map_file: str,
+    slices_per_axis: int,
+    model_file: str,
+    output_dir: str,
+) -> np.ndarray:
+    """Get predictions for the original and inverse files at the same time and output to json file"""
+    logging.info("Getting predictions for original and inverse maps pair")
+    logging.info(f"Original at: {original_map_file}")
+    logging.info(f"Inverse at: {inverse_map_file}")
+
+    # Get image stacks
+    original_image_stack = map_to_images(original_map_file, slices_per_axis)
+    inverse_image_stack = map_to_images(inverse_map_file, slices_per_axis)
+    # Add image stacks together with original first, should have shape
+    # of (6*slices_per_axis, 201, 201, 1) for easy input to neural network
+    total_image_stack = np.concatenate(
+        (original_image_stack, inverse_image_stack), axis=0
+    )
+
+    # Get predictions
+    logging.info(f"Getting predictions from model at {model_file}")
+    predictions = predictions_from_images(total_image_stack, model_file)
+
+    # Record raw predictions
+    assert Path(
+        output_dir
+    ).is_dir(), f"Could not find expected directory at {output_dir}"
+    raw_predictions = {
+        "Original": [
+            (float(pred[0]), float(pred[1]))
+            for pred in predictions[: int(len(predictions) / 2)]
+        ],
+        "Inverse": [
+            (float(pred[0]), float(pred[1]))
+            for pred in predictions[int(len(predictions) / 2) :]
+        ],
+    }
+    with open(Path(output_dir) / "raw_predictions.json", "w") as raw_pred_file:
+        json.dump(raw_predictions, raw_pred_file)
+
+    return raw_predictions
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     print(sys.argv)
 
-    print(predictions_from_map(sys.argv[1], int(sys.argv[2]), sys.argv[3]))
+    print(
+        predict_original_inverse(
+            sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
+        )
+    )
