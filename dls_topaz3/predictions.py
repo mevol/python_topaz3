@@ -88,6 +88,8 @@ def predict_original_inverse(
     slices_per_axis: int,
     model_file: str,
     output_dir: str,
+    raw_pred_filename: str = "raw_predictions.json",
+    average_pred_filename: str = "avg_predictions.json",
 ) -> np.ndarray:
     """Get predictions for the original and inverse files at the same time and output to json file"""
     logging.info("Getting predictions for original and inverse maps pair")
@@ -112,19 +114,37 @@ def predict_original_inverse(
         output_dir
     ).is_dir(), f"Could not find expected directory at {output_dir}"
     raw_predictions = {
-        "Original": [
-            (float(pred[0]), float(pred[1]))
-            for pred in predictions[: int(len(predictions) / 2)]
-        ],
-        "Inverse": [
-            (float(pred[0]), float(pred[1]))
-            for pred in predictions[int(len(predictions) / 2) :]
-        ],
+        "Original": predictions[: int(len(predictions) / 2)].tolist(),
+        "Inverse": predictions[int(len(predictions) / 2) :].tolist(),
     }
-    with open(Path(output_dir) / "raw_predictions.json", "w") as raw_pred_file:
-        json.dump(raw_predictions, raw_pred_file)
+    try:
+        with open(Path(output_dir) / raw_pred_filename, "w") as raw_pred_file:
+            json.dump(raw_predictions, raw_pred_file, indent=4)
+    except Exception:
+        logging.exception(f"Could not write raw predictions to {raw_pred_file.name}")
+        raise
 
-    return raw_predictions
+    # Record the average predictions
+    avg_predictions = {
+        "Original": (
+            np.mean([pred[0] for pred in raw_predictions["Original"]]),
+            np.mean([pred[1] for pred in raw_predictions["Original"]]),
+        ),
+        "Inverse": (
+            np.mean([pred[0] for pred in raw_predictions["Inverse"]]),
+            np.mean([pred[1] for pred in raw_predictions["Inverse"]]),
+        ),
+    }
+    try:
+        with open(Path(output_dir) / average_pred_filename, "w") as avg_pred_file:
+            json.dump(avg_predictions, avg_pred_file, indent=4)
+    except Exception:
+        logging.exception(
+            f"Could not write average predictions to {avg_pred_file.name}"
+        )
+        raise
+
+    return avg_predictions
 
 
 if __name__ == "__main__":
