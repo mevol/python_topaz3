@@ -9,18 +9,19 @@ from conversions import phase_to_map
 from delete_temp_files import delete_temp_files
 from get_cc import get_cc
 from database_ops import prepare_training_database, prepare_labels_database
+from typing import List
 
 
 def prepare_training_data(
-    phase_directory,
-    cell_info_directory,
-    cell_info_path,
-    space_group_directory,
-    space_group_path,
-    xyz_limits,
-    database,
-    output_directory,
-    delete_temp=True,
+    phase_directory: str,
+    cell_info_directory: str,
+    cell_info_path: str,
+    space_group_directory: str,
+    space_group_path: str,
+    xyz_limits: List[int],
+    database: str,
+    output_directory: str,
+    delete_temp: bool = True,
 ):
     """Convert both the original and inverse hands of a structure into a regular map file based on information
     about the cell info and space group and the xyz dimensions. Return True if no exceptions"""
@@ -198,7 +199,7 @@ def prepare_training_data(
                 output_dir / (struct + "_i.map"),
             )
         except Exception:
-            logging.error(f"Could not convert original hand for {struct}")
+            logging.error(f"Could not convert inverse hand for {struct}")
             raise
 
         logging.info(f"Successfully converted {struct}")

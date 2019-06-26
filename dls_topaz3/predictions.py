@@ -113,6 +113,7 @@ def predict_original_inverse(
     assert Path(
         output_dir
     ).is_dir(), f"Could not find expected directory at {output_dir}"
+    # Split the predictions in half to match the original and inverse pairs
     raw_predictions = {
         "Original": predictions[: int(len(predictions) / 2)].tolist(),
         "Inverse": predictions[int(len(predictions) / 2) :].tolist(),
@@ -126,14 +127,14 @@ def predict_original_inverse(
 
     # Record the average predictions
     avg_predictions = {
-        "Original": (
-            np.mean([pred[0] for pred in raw_predictions["Original"]]),
-            np.mean([pred[1] for pred in raw_predictions["Original"]]),
-        ),
-        "Inverse": (
-            np.mean([pred[0] for pred in raw_predictions["Inverse"]]),
-            np.mean([pred[1] for pred in raw_predictions["Inverse"]]),
-        ),
+        "Original": {
+            0: np.mean([pred[0] for pred in raw_predictions["Original"]]),
+            1: np.mean([pred[1] for pred in raw_predictions["Original"]]),
+        },
+        "Inverse": {
+            0: np.mean([pred[0] for pred in raw_predictions["Inverse"]]),
+            1: np.mean([pred[1] for pred in raw_predictions["Inverse"]]),
+        },
     }
     try:
         with open(Path(output_dir) / average_pred_filename, "w") as avg_pred_file:
