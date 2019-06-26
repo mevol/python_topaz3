@@ -3,15 +3,9 @@ images from a model and outputting the predictions in a useful format"""
 
 import sys
 import logging
-import glob
 import mrcfile
 import numpy as np
-import sqlite3
-import pandas
-import re
-import os
 import keras.models
-from pathlib import Path
 from dls_topaz3.maps_to_images import slice_map
 
 IMG_DIM = (201, 201)
@@ -30,10 +24,8 @@ def predictions_from_images(image_stack: np.ndarray, model_file: str) -> np.ndar
     return predictions
 
 
-def predictions_from_map(
-    map_file: str, slices_per_axis: int, model_file: str
-) -> np.ndarray:
-    """Get the image slices from a map file and get their predictions"""
+def map_to_images(map_file: str, slices_per_axis: int) -> np.ndarray:
+    """Convert a map to an image stack and scale it properly"""
     logging.info(f"Extracting data from {map_file}")
     try:
         with mrcfile.open(map_file) as mrc:
@@ -62,10 +54,35 @@ def predictions_from_map(
 
     logging.info(f"Got {image_stack.shape[0]} slices for prediction")
 
+    # Scale slices for input to neural network
+    for slice_num in range(image_stack.shape[0]):
+        # Get slice
+        slice = image_stack[slice_num, :, :]
+        # Scale slice
+        slice = (slice - slice.min()) / (slice.max() - slice.min())
+
+        # Return to image_stack (in place)
+        image_stack[slice_num, :, :] = slice
+
+    # Add a 4th dimension for the benefit of keras and return
+    return np.expand_dims(image_stack, 3)
+
+
+def predictions_from_map(
+    map_file: str, slices_per_axis: int, model_file: str
+) -> np.ndarray:
+    """Get the image slices from a map file and get their predictions"""
+    image_stack = map_to_images(map_file, slices_per_axis)
+
+    # Get predictions
+    predictions = predictions_from_images(image_stack, model_file)
+
+    return predictions
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     print(sys.argv)
 
-    predictions_from_map(sys.argv[1], int(sys.argv[2]), sys.argv[3])
+    print(predictions_from_map(sys.argv[1], int(sys.argv[2]), sys.argv[3]))
