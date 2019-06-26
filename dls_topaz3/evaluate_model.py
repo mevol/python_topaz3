@@ -23,6 +23,7 @@ def evaluate(
     database_file: str,
     output_dir: str,
     slices_per_structure: int = 60,
+    rgb: bool = False,
 ):
     # Load model
     try:
@@ -69,13 +70,19 @@ def evaluate(
 
     test_batch_size = slices_per_structure
 
+    # Add color mode selection, this is necessary for testing pretrained models which are expecting RGB images
+    if rgb:
+        color_mode = "rgb"
+    else:
+        color_mode = "grayscale"
+
     test_generator = test_datagen.flow_from_dataframe(
         testing_dataframe,
         x_col="Files",
         y_col="Labels",
         target_size=IMG_DIM,
         class_mode=None,
-        color_mode="grayscale",
+        color_mode=color_mode,
         batch_size=test_batch_size,
         shuffle=False,
     )
