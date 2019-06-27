@@ -7,8 +7,8 @@ import logging
 import logconfig
 
 from pathlib import Path
-from mtz_info import mtz_get_cell
-from space_group import textfile_find_space_group, mtz_find_space_group
+from dls_topaz3.mtz_info import mtz_get_cell
+from dls_topaz3.space_group import textfile_find_space_group, mtz_find_space_group
 
 log = logging.getLogger(name="debug_log")
 userlog = logging.getLogger(name="usermessages")

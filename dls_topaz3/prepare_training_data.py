@@ -3,12 +3,12 @@ import argparse
 import yaml
 
 from pathlib import Path
-from mtz_info import mtz_get_cell
-from space_group import textfile_find_space_group, mtz_find_space_group
-from conversions import phase_to_map
-from delete_temp_files import delete_temp_files
-from get_cc import get_cc
-from database_ops import prepare_training_database, prepare_labels_database
+from dls_topaz3.mtz_info import mtz_get_cell
+from dls_topaz3.space_group import textfile_find_space_group, mtz_find_space_group
+from dls_topaz3.conversions import phase_to_map
+from dls_topaz3.delete_temp_files import delete_temp_files
+from dls_topaz3.get_cc import get_cc
+from dls_topaz3.database_ops import prepare_training_database, prepare_labels_database
 from typing import List
 
 
