@@ -26,7 +26,7 @@ def predictions_from_images(image_stack: np.ndarray, model_file: str) -> np.ndar
     return predictions
 
 
-def map_to_images(map_file: str, slices_per_axis: int) -> np.ndarray:
+def map_to_images(map_file: str, slices_per_axis: int, rgb: bool = False) -> np.ndarray:
     """Convert a map to an image stack and scale it properly"""
     logging.info(f"Extracting data from {map_file}")
     try:
@@ -66,8 +66,13 @@ def map_to_images(map_file: str, slices_per_axis: int) -> np.ndarray:
         # Return to image_stack (in place)
         image_stack[slice_num, :, :] = slice
 
-    # Add a 4th dimension for the benefit of keras and return
-    return np.expand_dims(image_stack, 3)
+    if rgb:
+        # Turn into RGB image array
+        image_stack_rgb = np.stack((image_stack,) * 3, axis=3)
+        return image_stack_rgb
+    else:
+        # Add a 4th dimension for the benefit of keras and return
+        return np.expand_dims(image_stack, 3)
 
 
 def predictions_from_map(
@@ -90,6 +95,7 @@ def predict_original_inverse(
     output_dir: str,
     raw_pred_filename: str = "raw_predictions.json",
     average_pred_filename: str = "avg_predictions.json",
+    rgb: bool = False,
 ) -> np.ndarray:
     """Get predictions for the original and inverse files at the same time and output to json file"""
     logging.info("Getting predictions for original and inverse maps pair")
@@ -97,8 +103,8 @@ def predict_original_inverse(
     logging.info(f"Inverse at: {inverse_map_file}")
 
     # Get image stacks
-    original_image_stack = map_to_images(original_map_file, slices_per_axis)
-    inverse_image_stack = map_to_images(inverse_map_file, slices_per_axis)
+    original_image_stack = map_to_images(original_map_file, slices_per_axis, rgb=rgb)
+    inverse_image_stack = map_to_images(inverse_map_file, slices_per_axis, rgb=rgb)
     # Add image stacks together with original first, should have shape
     # of (6*slices_per_axis, 201, 201, 1) for easy input to neural network
     total_image_stack = np.concatenate(
@@ -155,6 +161,11 @@ if __name__ == "__main__":
 
     print(
         predict_original_inverse(
-            sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4], sys.argv[5]
+            sys.argv[1],
+            sys.argv[2],
+            int(sys.argv[3]),
+            sys.argv[4],
+            sys.argv[5],
+            rgb=bool(sys.argv[6]),
         )
     )
