@@ -19,8 +19,8 @@ def prepare_training_data(
     space_group_directory: str,
     space_group_path: str,
     xyz_limits: List[int],
-    database: str,
     output_directory: str,
+    database: str = None,
     delete_temp: bool = True,
 ):
     """Convert both the original and inverse hands of a structure into a regular map file based on information
@@ -50,20 +50,6 @@ def prepare_training_data(
         logging.error(
             f"Could not find space group directory at {space_group_directory}"
         )
-        raise
-
-    try:
-        database_path = Path(database)
-        assert database_path.exists()
-    except Exception:
-        logging.error(f"Could not find database at {database}")
-        raise
-
-    try:
-        database_path = Path(database)
-        assert database_path.exists()
-    except Exception:
-        logging.error(f"Could not find database at {database}")
         raise
 
     try:
@@ -206,73 +192,87 @@ def prepare_training_data(
 
     logging.info("Finished conversions")
 
-    # Build up database - collect all cc information first then put it into database
-    logging.info("Collecting CC information")
+    # If a database file is given, attempt to provide the training and labels table
+    if database is not None:
+        logging.info(f"Adding to database at {database}")
 
-    # Dictionary of correlation coefficients
-    cc_original_dict = {}
-    cc_inverse_dict = {}
+        # Build up database - collect all cc information first then put it into database
+        logging.info("Collecting CC information")
 
-    for struct in phase_structs:
-        # Create original and inverse hands
-        try:
-            original_hand = Path(
-                phase_dir / struct / space_group_dict[struct] / (struct + ".lst")
-            )
-            inverse_hand = Path(
-                phase_dir / struct / space_group_dict[struct] / (struct + "_i.lst")
-            )
+        # Dictionary of correlation coefficients
+        cc_original_dict = {}
+        cc_inverse_dict = {}
 
-            # Catch a weird situation where some space groups RXX can also be called RXX:H
-            if (space_group_dict[struct][0] == "R") and (
-                original_hand.exists() == False
-            ):
+        for struct in phase_structs:
+            # Create original and inverse hands
+            try:
                 original_hand = Path(
-                    phase_dir
-                    / struct
-                    / (space_group_dict[struct] + ":H")
-                    / (struct + ".lst")
+                    phase_dir / struct / space_group_dict[struct] / (struct + ".lst")
                 )
                 inverse_hand = Path(
-                    phase_dir
-                    / struct
-                    / (space_group_dict[struct] + ":H")
-                    / (struct + "_i.lst")
+                    phase_dir / struct / space_group_dict[struct] / (struct + "_i.lst")
                 )
 
-            assert original_hand.exists(), f"Could not find original hand for {struct}"
-            assert inverse_hand.exists(), f"Could not find inverse hand for {struct}"
-        except Exception:
-            logging.error(
-                f"Could not find lst files of {struct} in space group {space_group_dict[struct]}"
-            )
-            raise
+                # Catch a weird situation where some space groups RXX can also be called RXX:H
+                if (space_group_dict[struct][0] == "R") and (
+                    original_hand.exists() == False
+                ):
+                    original_hand = Path(
+                        phase_dir
+                        / struct
+                        / (space_group_dict[struct] + ":H")
+                        / (struct + ".lst")
+                    )
+                    inverse_hand = Path(
+                        phase_dir
+                        / struct
+                        / (space_group_dict[struct] + ":H")
+                        / (struct + "_i.lst")
+                    )
+
+                assert (
+                    original_hand.exists()
+                ), f"Could not find original hand for {struct}"
+                assert (
+                    inverse_hand.exists()
+                ), f"Could not find inverse hand for {struct}"
+            except Exception:
+                logging.error(
+                    f"Could not find lst files of {struct} in space group {space_group_dict[struct]}"
+                )
+                raise
+
+            try:
+                cc_original_dict[struct] = get_cc(original_hand)
+                cc_inverse_dict[struct] = get_cc(inverse_hand)
+            except Exception:
+                logging.error(
+                    f"Could not get CC info of {struct} in space group {space_group_dict[struct]}"
+                )
+                raise
 
         try:
-            cc_original_dict[struct] = get_cc(original_hand)
-            cc_inverse_dict[struct] = get_cc(inverse_hand)
+            database_path = Path(database)
+            assert database_path.exists()
         except Exception:
-            logging.error(
-                f"Could not get CC info of {struct} in space group {space_group_dict[struct]}"
-            )
+            logging.error(f"Could not find database at {database}")
             raise
-
-    # Generate list of results
-    cc_results = []
-    for struct in phase_structs:
-        cc_results.append(
-            (
-                struct,
-                cc_original_dict[struct],
-                cc_inverse_dict[struct],
-                (cc_original_dict[struct] > cc_inverse_dict[struct]),
-                (cc_original_dict[struct] < cc_inverse_dict[struct]),
+        # Generate list of results
+        cc_results = []
+        for struct in phase_structs:
+            cc_results.append(
+                (
+                    struct,
+                    cc_original_dict[struct],
+                    cc_inverse_dict[struct],
+                    (cc_original_dict[struct] > cc_inverse_dict[struct]),
+                    (cc_original_dict[struct] < cc_inverse_dict[struct]),
+                )
             )
-        )
 
-    # Put in database
-    prepare_training_database(str(database_path), cc_results)
-    prepare_labels_database(str(database_path))
+        # Put in database
+        prepare_training_database(str(database_path), cc_results)
+        prepare_labels_database(str(database_path))
 
     # Delete temporary files if requested
     if delete_temp == True:
@@ -301,6 +301,9 @@ def params_from_yaml(args):
             f"Could not extract parameters from yaml file at {config_file_path}"
         )
         raise
+
+    if "db_path" not in params.keys():
+        params["db_path"] = None
 
     if "delete_temp" not in params.keys():
         params["delete_temp"] = True
@@ -367,12 +370,12 @@ if __name__ == "__main__":
         "xyz", type=int, nargs=3, help="xyz size of the output map file"
     )
     cmd_parser.add_argument(
+        "output_dir", type=str, help="directory to output all map files to"
+    )
+    cmd_parser.add_argument(
         "db",
         type=str,
         help="location of the sqlite3 database to store training information",
-    )
-    cmd_parser.add_argument(
-        "output_dir", type=str, help="directory to output all map files to"
     )
     cmd_parser.add_argument(
         "--keep_temp",
@@ -396,8 +399,8 @@ if __name__ == "__main__":
             parameters["space_group_dir"],
             parameters["space_group_path"],
             parameters["xyz_limits"],
-            parameters["db_path"],
             parameters["output_dir"],
+            parameters["db_path"],
             parameters["delete_temp"],
         )
     except KeyError as e:
