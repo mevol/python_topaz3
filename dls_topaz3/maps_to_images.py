@@ -64,7 +64,9 @@ def sphere(shape, radius, position):
     return arr <= 1.0
 
 
-def directory_to_images(input_directory, slices_per_axis, output_directory):
+def directory_to_images(
+    input_directory, slices_per_axis, output_directory, output=False
+):
     """Get all the map files in the input directory, slice them and save with unique names in the output directory"""
     logging.info(
         f"Slicing maps from {input_directory} with {slices_per_axis} slices on each axis into {output_directory}"
@@ -82,6 +84,13 @@ def directory_to_images(input_directory, slices_per_axis, output_directory):
 
     # Load each file, get the slices and save them to the output directory
     for map in input_maps:
+        # Provide output
+        if output == True:
+            print(
+                f"Slicing map {input_maps.index(map): >4} of {len(input_maps)}",
+                end="\r",
+            )
+
         try:
             with mrcfile.open(map) as mrc:
                 volume = mrc.data
@@ -145,4 +154,4 @@ if __name__ == "__main__":
         plt.show()
 
     else:
-        directory_to_images(sys.argv[1], 20, sys.argv[2])
+        directory_to_images(sys.argv[1], 20, sys.argv[2], output=True)
