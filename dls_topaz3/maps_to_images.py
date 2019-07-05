@@ -2,11 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
 import logging
 from pathlib import Path
 import mrcfile
 from PIL import Image
+import argparse
 
 
 def slice_map(volume, slices_per_axis):
@@ -65,7 +65,10 @@ def sphere(shape, radius, position):
 
 
 def directory_to_images(
-    input_directory, slices_per_axis, output_directory, output=False
+    input_directory: str,
+    slices_per_axis: int,
+    output_directory: str,
+    output: bool = False,
 ):
     """Get all the map files in the input directory, slice them and save with unique names in the output directory"""
     logging.info(
@@ -87,7 +90,7 @@ def directory_to_images(
         # Provide output
         if output == True:
             print(
-                f"Slicing map {input_maps.index(map): >4} of {len(input_maps)}",
+                f"Slicing map {input_maps.index(map)+1: >4} of {len(input_maps)}",
                 end="\r",
             )
 
@@ -126,7 +129,35 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
 
-    if sys.argv[1] == "--test":
+    parser = argparse.ArgumentParser(
+        description="Converts directory of map files to image slices."
+    )
+
+    parser.add_argument(
+        "maps_directory", type=str, help="directory which contains map files"
+    )
+    parser.add_argument(
+        "output_directory", type=str, help="directory to output image files to"
+    )
+    parser.add_argument(
+        "--slices",
+        type=int,
+        help="optionally specify the number of slices per axis, default=20",
+        default=20,
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="no terminal output during healthy execution",
+        default=False,
+    )
+    parser.add_argument(
+        "--test", action="store_true", help="run test of sphere with graphical output"
+    )
+
+    args = parser.parse_args()
+
+    if args.test:
         s1 = sphere((201, 201, 201), 80, (100, 100, 100))
 
         stack1 = slice_map(s1, 1)
@@ -154,4 +185,9 @@ if __name__ == "__main__":
         plt.show()
 
     else:
-        directory_to_images(sys.argv[1], 20, sys.argv[2], output=True)
+        directory_to_images(
+            args.maps_directory,
+            args.slices,
+            args.output_directory,
+            output=not (args.quiet),
+        )
