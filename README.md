@@ -19,8 +19,27 @@ source topaz3_venv/bin/activate
 
 Install an editable version of the package:
 
+```bash
+# Make sure to point this to the top level of the package
+pip install -e topaz3
+```
 
+### Development
+This will install the dependencies required to use Topaz3.
+If you want to develop and contribute, follow these steps:
 
+- Go to the top level of the package:
+    ```bash
+    cd topaz3    
+    ```
+- Install all necessary packages from *requirements.txt*
+    ```bash
+    pip install -r requirements.txt
+    ```
+- Install precommit hooks which will help keep the code maintainable:
+    ```bash
+    pre-commit install
+    ```
 
 ## Usage
 
