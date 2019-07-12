@@ -41,15 +41,15 @@ def textfile_find_space_group(file):
     try:
         with open(file, "r") as f:
             text = f.read()
-    except:
-        logging.warning(f"Could not read from file at {file}")
+    except Exception:
+        logging.error(f"Could not read from file at {file}")
         raise
 
     logging.debug("Searching for space group")
     try:
         space_group = find_space_group(text)
-    except Exception as e:
-        logging.warning(f"Could not find space group in {file}")
+    except Exception:
+        logging.error(f"Could not find space group in {file}")
         raise
 
     return space_group
@@ -88,8 +88,8 @@ def mtz_find_space_group(mtzfile):
     logging.debug("Searching for space group")
     try:
         space_group = find_space_group(text)
-    except Exception as e:
-        logging.warning(f"Could not find space group in {mtz_filepath}")
+    except Exception:
+        logging.error(f"Could not find space group in {mtz_filepath}")
         raise
 
     return space_group
@@ -120,7 +120,3 @@ if __name__ == "__main__":
     else:
         logging.info("Using text file analysis...")
         print(textfile_find_space_group(abs_path))
-
-    # print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/phenix_output.txt"))
-    # print(textfile_find_space_group("/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log"))
-    # print(mtz_find_space_group("/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"))

@@ -4,7 +4,6 @@ into a regularly sized electron density map using tools from CCP4"""
 import procrunner
 import os
 import logging
-import logconfig
 
 from pathlib import Path
 from dls_topaz3.mtz_info import mtz_get_cell
@@ -341,34 +340,3 @@ def files_to_map(
     userlog.info("Conversion complete")
 
     return True
-
-
-if __name__ == "__main__":
-    # Set up initial logging things
-    userlog = logging.getLogger(name="usermessages")
-    log = logging.getLogger(name="debug_log")
-    logconfig.setup_logging()
-
-    userlog.info("Beginning test run of Files to Map conversion")
-
-    files_to_map(
-        "/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs",
-        "/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz",
-        "/dls/science/users/riw56156/topaz_test_data/simple_xia2_to_shelxcde.log",
-        [200, 200, 200],
-        "/dls/science/users/riw56156/topaz_test_data/python_test/file_to_map/output.map",
-    )
-
-    """
-    #Setting up file path names
-    phase_filepath = Path('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_str_i.phs')
-    mtz_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.mtz')
-    map_filepath = phase_filepath.parent / (phase_filepath.stem + '_temp.map')
-    output_filepath = phase_filepath.with_suffix('.map')
-
-    phase_to_map('/dls/science/users/riw56156/topaz_test_data/python_test/4PUC_i.phs',
-                 '/dls/science/users/riw56156/topaz_test_data/python_test/phase_to_map/output.map',
-                 [66.45, 112.123, 149.896, 90, 90, 90],
-                 "P212121",
-                 [200, 200, 200])
-    """

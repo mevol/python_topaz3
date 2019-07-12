@@ -10,8 +10,8 @@ setup(
     name="dls_topaz3",
     version=version,
     description="Module",
-    author="riw56156",
-    author_email="riw56156@fed.cclrc.ac.uk",
+    author="Tim Guite",
+    author_email="tim.guite@diamond.ac.uk",
     packages=["dls_topaz3"],
     install_requires=[
         "tensorflow-gpu",

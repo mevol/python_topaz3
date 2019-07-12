@@ -82,10 +82,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--test_file", help="Use this option to use a test file.", action="store_true"
-    )
-
-    parser.add_argument(
         "mtz_filename",
         type=str,
         metavar="mtz_filename",
@@ -94,19 +90,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # If testing, use test file
-    if args.test_file:
-        print("Testing")
-        mtz_filename = (
-            "/dls/science/users/riw56156/topaz_test_data/AUTOMATIC_DEFAULT_free.mtz"
-        )
-    else:
-        mtz_filename = args.mtz_filename
+    print(f"Collecting information from {args.mtz_filename}")
 
-    print(f"Collecting information from {mtz_filename}")
-
-    cell_info = mtz_get_cell(mtz_filename)
-    group_info = mtz_get_group(mtz_filename)
+    cell_info = mtz_get_cell(args.mtz_filename)
+    group_info = mtz_get_group(args.mtz_filename)
 
     print(f"MTZ Cell Info: {cell_info}")
     print(f"MTZ Group: {group_info}")

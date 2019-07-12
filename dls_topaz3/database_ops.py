@@ -107,15 +107,3 @@ def prepare_labels_database(database):
     logging.info(f"Successful write of sorted table")
 
     return True
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    prepare_training_database(
-        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite",
-        [("ABC4", 5.0, 11, False, True), ("A3C4", 79, 2.1, True, False)],
-    )
-
-    prepare_labels_database(
-        "/dls/science/users/riw56156/topaz_test_data/metrix_db_20190403.sqlite"
-    )
