@@ -28,7 +28,7 @@ import keras
 import pandas
 from plot_history import history_to_csv
 from k_fold_boundaries import k_fold_boundaries
-from dls_topaz3.evaluate_model import evaluate
+from topaz3.evaluate_model import evaluate
 
 
 IMG_DIM = (201, 201)
