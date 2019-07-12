@@ -4,7 +4,7 @@ Predictions using a particular model for a map file (which has been regularized 
 
 To get the predictions from a single map file:
 ```python
-from dls_topaz3.predictions import predictions_from_map
+from topaz3.predictions import predictions_from_map
 predictions_from_map(map_file="/path/to/my/structure.map",
                      slices_per_axis=20,
                      model_file="/path/to/trained/model.h5"
@@ -13,7 +13,7 @@ predictions_from_map(map_file="/path/to/my/structure.map",
 More often, it is useful to get and record the average predictions of an original/inverse hand pair.
 For that case, use this function:
 ```python
-from dls_topaz3.predictions import predict_original_inverse
+from topaz3.predictions import predict_original_inverse
 predict_original_inverse(original_map_file="/path/to/structure.map",
                          inverse_map_file="/path/to/structure_i.map",
                          slices_per_axis=20,

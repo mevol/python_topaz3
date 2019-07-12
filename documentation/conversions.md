@@ -1,6 +1,6 @@
 # Conversions
 
-This file contains information about specific file conversions which may be necessary as part of the dls_topaz3 processing and prediction pipeline.
+This file contains information about specific file conversions which may be necessary as part of the topaz3 processing and prediction pipeline.
 
 ### Files to map
 The high level conversion for a phase file to a regularized map file is as follows:
@@ -19,7 +19,7 @@ The high level conversion for a phase file to a regularized map file is as follo
 
 **Example**
 ```python
-from dls_topaz3.conversions import files_to_map
+from topaz3.conversions import files_to_map
 files_to_map("/location/of/phase/file/structure.phs",
              "/location/of/cell/info/cell_info.mtz",
              "/location/of/space/group/simple_xia2_to_shelxcde.log",
@@ -44,7 +44,7 @@ This is the function which sits inside *files_to_map* and it can be accessed dir
 
 **Example**
 ```python
-from dls_topaz3.conversions import phase_to_map
+from topaz3.conversions import phase_to_map
 phase_to_map("/location/of/phase/file/structure.phs",
              [66.45, 112.123, 149.896, 90, 90, 90],
              "P212121",

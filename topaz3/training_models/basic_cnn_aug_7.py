@@ -58,7 +58,7 @@ def create_model(input_shape):
 
     model.compile(
         loss="categorical_crossentropy",
-        optimizer=keras.optimizers.adam(lr=5e-5),
+        optimizer=keras.optimizers.adam(lr=1e-5),
         metrics=["accuracy"],
     )
 
@@ -140,7 +140,7 @@ def train(training_dir: str, database_file: str, test_dir: str, output_dir: str)
     # Model run parameters
     k_folds = 5
     runs = 5
-    epochs = 50
+    epochs = 100
     batch_size = 50
 
     fold_boundaries = k_fold_boundaries(train_files, k_folds)

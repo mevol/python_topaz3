@@ -7,7 +7,7 @@ import mrcfile
 import json
 import numpy as np
 import keras.models
-from dls_topaz3.maps_to_images import slice_map
+from topaz3.maps_to_images import slice_map
 from pathlib import Path
 
 IMG_DIM = (201, 201)

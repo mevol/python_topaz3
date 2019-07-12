@@ -8,7 +8,7 @@ MODULEVER=0.0
 
 # This is run when we type make
 # It can depend on other targets e.g. the .py files produced by pyuic4
-dist: setup.py $(wildcard dls_topaz3/*.py)
+dist: setup.py $(wildcard topaz3/*.py)
 	MODULEVER=$(MODULEVER) $(PYTHON) setup.py bdist_egg
 	touch dist
 	$(MAKE) -C documentation

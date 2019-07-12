@@ -9,8 +9,8 @@ import yaml
 
 import sqlite3
 
-from dls_topaz3.prepare_training_data import prepare_training_data
-from dls_topaz3.maps_to_images import directory_to_images
+from topaz3.prepare_training_data import prepare_training_data
+from topaz3.maps_to_images import directory_to_images
 
 example_config = """phase_dir: /phase/directory/path
 cell_info_dir: /cell/info/directory
@@ -78,9 +78,7 @@ def main():
         help="automatically generate maps and images directories and database for output",
     )
     parser.add_argument(
-        "--example",
-        action="store_true",
-        help="creates example in the config_file provided",
+        "--example", action="store_true", help="creates example in the config_file"
     )
 
     args = parser.parse_args()

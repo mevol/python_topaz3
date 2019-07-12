@@ -1,15 +1,26 @@
-# dls_topaz3
+# Topaz3
 
-This is a python 3 refactoring of the existing topaz module for converting phase information into a regularly sized map for machine learning at Diamond Light Source.
+A data manipulation and machine learning package for Macromolecular Crystallography (MX) at [**Diamond Light Source**](https://www.diamond.ac.uk/Home.html).
 
 ## Installation
 
-After cloning this repository, go into the directory and create a new virtual environment with the dependencies used during development:
+Clone the repository from the [source code](https://github.com/TimGuiteDiamond/topaz3) on Github:
+
 ```bash
-python3 -m venv dls_topaz3_venv
-source dls_topaz3_venv/bin/activate
-pip install -r requirements.txt
+git clone https://github.com/TimGuiteDiamond/topaz3.git
 ```
+
+It is good practice to create a virtual environment for development:
+
+```bash
+python3 -m venv topaz3_venv
+source topaz3_venv/bin/activate
+```
+
+Install an editable version of the package:
+
+
+
 
 ## Usage
 

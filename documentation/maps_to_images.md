@@ -6,7 +6,7 @@ This is a relatively easy process, although it can take some time.
 By default, the program will display output to the terminal to let you know it is working.
 
 ```bash
-python dls_topaz3/maps_to_images.py --help
+python topaz3/maps_to_images.py --help
 usage: maps_to_images.py [-h] [--slices SLICES] [--quiet] [--test]
                          maps_directory output_directory
 
