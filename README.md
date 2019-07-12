@@ -46,9 +46,9 @@ As there are so many inputs which are likely to be long filepaths, it will be ea
 Use the below template (keys are correct, values are not):
 ```yaml
 phase_dir: /phase/directory/path
-cell_info_dir: cell/info/directory
-cell_info_path: /cell/info/path
-space_group_dir: space/group/directory
+cell_info_dir: /cell/info/directory
+cell_info_path: cell/info/path
+space_group_dir: /space/group/directory
 space_group_path: space/group/path
 xyz_limits:
   - 200

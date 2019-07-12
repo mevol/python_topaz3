@@ -68,7 +68,7 @@ def directory_to_images(
     input_directory: str,
     slices_per_axis: int,
     output_directory: str,
-    output: bool = False,
+    verbose: bool = False,
 ):
     """Get all the map files in the input directory, slice them and save with unique names in the output directory"""
     logging.info(
@@ -88,7 +88,7 @@ def directory_to_images(
     # Load each file, get the slices and save them to the output directory
     for map in input_maps:
         # Provide output
-        if output == True:
+        if verbose == True:
             print(
                 f"Slicing map {input_maps.index(map)+1: >4} of {len(input_maps)}",
                 end="\r",
@@ -189,5 +189,5 @@ if __name__ == "__main__":
             args.maps_directory,
             args.slices,
             args.output_directory,
-            output=not (args.quiet),
+            verbose=not (args.quiet),
         )
