@@ -83,8 +83,6 @@ def main():
 
     args = parser.parse_args()
 
-    print(args)
-
     if args.example:
         logging.info(f"Creating example in {args.config_file}")
         with open(args.config_file, "w") as cf:

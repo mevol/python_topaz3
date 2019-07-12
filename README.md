@@ -2,6 +2,8 @@
 
 A data manipulation and machine learning package for Macromolecular Crystallography (MX) at [**Diamond Light Source**](https://www.diamond.ac.uk/Home.html).
 
+Specifically, it transforms electron density map data obtained from diffraction experiments 
+
 ## Installation
 
 Clone the repository from the [source code](https://github.com/TimGuiteDiamond/topaz3) on Github:
@@ -43,82 +45,86 @@ If you want to develop and contribute, follow these steps:
 
 ## Usage
 
-### Predictions
-Information about how to predict the scores from files can be found [here](documentation/predictions.md).
+### Prepare some data
 
-### Prepare training data
-Before reading about how to use this function, take a moment to look at the diagram below which shows the expected directory structure.
-This is based on the initial training set at Diamond and may change in the future.
-Input parameters are in ***bold italics***.
-![Prepare training data diagram](documentation/images/prepare_training_data.png?raw=true "Inputs to prepare training data")
+This package was designed for use at Diamond Light Source.
+As such some assumptions have been made in encompassing scripts about file layout and information.
+The Diamond use case will be discussed first and then the building blocks will be explained, which should help you implement the functionality here even if your setup is different.
 
-**Inputs**
-- *phase_directory* - directory with phase information for all the structures you wish to turn into map data ready for training
-- *cell_info_directory* - directory with cell info file for all structures
-- *cell_info_path* - path for cell info file within each structure directory
-- *space_group_directory* - directory with space space group file for all structures
-- *space_group_path* - path for space group file within each structure directory
-- *xyz_limits* - list or tuple of three integers specifying the size of the output map
-- *database* - location of the database from which to store the truth values
-- *output_directory* - directory in which to put all of the output files, must exist before runtime
-- *delete_temp* - binary on whether or not to delete files produced during the intermediate steps, True by default
+It is assumed that some processing output will have provided a directory with many structures, each of which has the following information:
+- original and inverse phase files
+- cell group information in a .mtz file
+- space group information in a .mtz or log file
 
-**NOTE:** Absolute paths are used for directories, relative paths below the structure directory are used for ***cell_info_path*** and ***space_group_path*** (no leading slash)
+This will look *roughly* like:
 
-**Outputs**
-- *Output files* - .map files with the specified dimensions
-- *Temporary files* - some files marked with *_temp* which are the files created during the intermediate steps of the transformation
-- If the function ran properly, it should return *True*
+![Directory map](/documentation/images/prepare_training_data.png)
 
-**From yaml file**
+Note that this allows for the phase, cell and space information to be in entirely separate locations.
+The important thing is that the directories all contain the same structure directories inside them.
 
-As there are so many inputs which are likely to be long filepaths, it will be easier to execute with the aid of a yaml file.
-Use the below template (keys are correct, values are not):
+From there, the path to the specific files can be defined relative to the structure directories.
+This assumes that the cell and space files are in the same location within each structure directory.
+
+The phase information is located by searching the structure directory for a folder which matches the best space group label found in the space group file.
+For example, this will be of the form P12121.
+The original and inverse phase files are both assumed to be within this directory.
+
+From there, you must define *xyz* limits for the map file transformation.
+We used 200x200x200 and a cube is required for further transformations using provided tools here.
+
+Each phase file will produce a corresponding .map file in a folder you can define.
+
+You may also choose to generate labels in a database based on the CC values of the original vs inverse hand.
+
+Finally, the maps are sliced up into 2D image files and stored in the image directory for training.
+
+As you can see, there are many parameters necessary for this processing, so the tool provided requires a [yaml](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html) configuration file input.
+You can generate this file now with:
+
+``bash
+topaz3.prepare --example config.yaml
+``
+
+which will generate a file that looks like this:
 ```yaml
 phase_dir: /phase/directory/path
 cell_info_dir: /cell/info/directory
-cell_info_path: cell/info/path
+cell_info_path: cell/info/path.mtx
 space_group_dir: /space/group/directory
-space_group_path: space/group/path
+space_group_path: space/group/path.log
 xyz_limits:
   - 200
   - 200
   - 200
-db_path: /db/is/here
-output_dir: /output/directory/path
+db_path: /db/is/here.db
+maps_dir: /output/maps/directory
+slices_per_axis: 20
+images_dir: /output/images/directory
 ```
-You may then execute the command with
+
+From here, simple change the file paths according to the specification above and trigger the data preparation with:
 ```bash
-python3 prepare_training_data.py yaml {config_file_path.yaml}
+topaz3.prepare config.yaml --make-output
 ```
+*--make-output* simply generates the output directories and database if it cannot find them.
+Leave it out to ensure only directories and databases which already exist are used.
 
-**From command line**
+If you want to perform the transformation but not produce results in a database, simply remove the *db_path* line from the config file.
+You may want to do this if you have already generated your labels from well processed data and now want to repeat the data preparation and training cycle on different versions of the same structures.
 
-To execute directly from the command line, use the same module but with *cmd* keyword before the positional arguments.
-Here is the help text:
-```bash
-usage: prepare_training_data.py cmd [-h] [--keep_temp]
-                                    phase_dir cell_info_dir cell_info_path
-                                    space_group_dir space_group_path xyz xyz
-                                    xyz db output_dir
+You can check this has worked properly by looking in the map and images directory you specified.
 
-positional arguments:
-  phase_dir         top level directory for phase information
-  cell_info_dir     top level directory for cell info
-  cell_info_path    cell info file within each structure folder
-  space_group_dir   top level directory for space group
-  space_group_path  space group file within each structure folder
-  xyz               xyz size of the output map file
-  db                location of the sqlite3 database to store training
-                    information
-  output_dir        directory to output all map files to
+Within the database there should now be two tables, ai_data and ai_labels, which can be used for training.
 
-optional arguments:
-  -h, --help        show this help message and exit
-  --keep_temp       keep the temporary files after processing
-```
+If you want to perform more specific versions of this transformation, please see: [Data Preparation](documentation/preparation.md)
 
-More information about specific conversions can be found [here](documentation/conversions.md).
+**Note:** If you are not at Diamond, you may experience some issues with the shell scripts.
+Go to topaz3/shell_scripts and alter these such that they run on your machine/system.
+Most of this software is related to the [CCP4 project](http://www.ccp4.ac.uk/) and should be freely available.
+
+### Predictions
+Information about how to predict the scores from files can be found [here](documentation/predictions.md).
 
 ## Contributing
 
