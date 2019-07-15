@@ -26,8 +26,8 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.models import Sequential
 import keras
 import pandas
-from plot_history import history_to_csv
-from k_fold_boundaries import k_fold_boundaries
+from topaz3.training_models.plot_history import history_to_csv
+from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
 from topaz3.evaluate_model import evaluate
 
 

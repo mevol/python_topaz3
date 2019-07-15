@@ -16,8 +16,16 @@ It is good practice to create a virtual environment for development:
 
 ```bash
 python3 -m venv topaz3_venv
+```
+
+Now activate the venv. This is the only step to repeat after installation.
+
+```bash
 source topaz3_venv/bin/activate
 ```
+
+**Note:** topaz3_venv/bin/activate is a file so can be accessed the same way as any other file
+(via absolute or relative path) 
 
 Install an editable version of the package:
 
