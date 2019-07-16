@@ -12,13 +12,13 @@ Clone the repository from the [source code](https://github.com/TimGuiteDiamond/t
 git clone https://github.com/TimGuiteDiamond/topaz3.git
 ```
 
-It is good practice to create a virtual environment for development:
+It is good practice to create a [virtual environment](https://realpython.com/python-virtual-environments-a-primer/) for development:
 
 ```bash
 python3 -m venv topaz3_venv
 ```
 
-Now activate the venv. This is the only step to repeat after installation.
+Now activate the venv. *This is the only step to repeat after installation*.
 
 ```bash
 source topaz3_venv/bin/activate
@@ -74,8 +74,16 @@ The important thing is that the directories all contain the same structure direc
 From there, the path to the specific files can be defined relative to the structure directories.
 This assumes that the cell and space files are in the same location within each structure directory.
 
+**Example**: the cell info file for a structure with a [PDB ID](https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html) of 4PIB
+may be located at */scratch/ai_research/structures/4PIB/metadata/cell_info.mtz*.
+In this case, the **cell_info_dir** would be */scratch/ai_research/structures* and the
+**cell_info_path** would be *metadata/cell_info.mtz*.
+At runtime, this will generate the full path for each structure in the cell info directory with the pattern
+*{cell_info_dir}/{structure}/{cell_info_path}*.
+The same process is applied for the space group prameters.
+
 The phase information is located by searching the structure directory for a folder which matches the best space group label found in the space group file.
-For example, this will be of the form P12121.
+For example, this will be of the form "P12121".
 The original and inverse phase files are both assumed to be within this directory.
 
 From there, you must define *xyz* limits for the map file transformation.
