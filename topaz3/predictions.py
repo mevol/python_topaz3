@@ -1,14 +1,15 @@
 """Module containing useful functions for getting predictions on
 images from a model and outputting the predictions in a useful format"""
 
-import sys
+import configargparse
 import logging
 import mrcfile
 import json
 import numpy as np
 import keras.models
-from topaz3.maps_to_images import slice_map
 from pathlib import Path
+
+from topaz3.maps_to_images import slice_map
 
 IMG_DIM = (201, 201)
 
@@ -157,15 +158,63 @@ def predict_original_inverse(
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    print(sys.argv)
-
-    print(
-        predict_original_inverse(
-            sys.argv[1],
-            sys.argv[2],
-            int(sys.argv[3]),
-            sys.argv[4],
-            sys.argv[5],
-            rgb=bool(sys.argv[6]),
-        )
+    # Set up parser to work with command line argument or yaml file
+    parser = configargparse.ArgParser(
+        config_file_parser_class=configargparse.YAMLConfigFileParser
     )
+
+    parser.add_argument(
+        "-c",
+        "--config",
+        is_config_file=True,
+        help="config file to specify the following options in",
+    )
+    parser.add_argument(
+        "--original_map_file", required=True, help="map file of original hand"
+    )
+    parser.add_argument(
+        "--inverse_map_file", required=True, help="map file of inverse hand"
+    )
+    parser.add_argument(
+        "--slices_per_axis",
+        required=True,
+        type=int,
+        help="slices to be taken of map per axis for predictions",
+    )
+    parser.add_argument(
+        "--model_file", required=True, help=".h5 file to load model from"
+    )
+    parser.add_argument(
+        "--output_dir", required=True, help="directory to store results in"
+    )
+    parser.add_argument(
+        "--rgb",
+        action="store_true",
+        default=False,
+        help="include this option if using a model which expects 3d images",
+    )
+
+    args = parser.parse_args()
+
+    # Print out the parameters this is being run on
+
+    logging.info(
+        f"Prediction called with following parameters:\n"
+        f"Original map file: {args.original_map_file}\n"
+        f"Inverse map file: {args.inverse_map_file}\n"
+        f"Sliced with {args.slices_per_axis}\n"
+        f"Predictions using model at {args.model_file}\n"
+        f"Output to: {args.output_dir}\n"
+        f"Using rgb images: {args.rgb}"
+    )
+
+    predictions = predict_original_inverse(
+        args.original_map_file,
+        args.inverse_map_file,
+        args.slices_per_axis,
+        args.model_file,
+        args.output_dir,
+        rgb=args.rgb,
+    )
+
+    print(predictions)
