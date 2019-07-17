@@ -88,7 +88,7 @@ def directory_to_images(
     # Load each file, get the slices and save them to the output directory
     for map in input_maps:
         # Provide output
-        if verbose == True:
+        if verbose is True:
             print(
                 f"Slicing map {input_maps.index(map)+1: >4} of {len(input_maps)}",
                 end="\r",
