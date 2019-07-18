@@ -26,6 +26,7 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.models import Sequential
 import keras
 import pandas
+
 from topaz3.training_models.plot_history import history_to_csv
 from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
 from topaz3.evaluate_model import evaluate
@@ -86,11 +87,9 @@ def train(training_dir: str, database_file: str, test_dir: str, output_dir: str)
     data = pandas.read_sql(f"SELECT * FROM ai_labels", conn)
     data_indexed = data.set_index("Name")
 
+    # Strip the image number from the filename
     names = [re.findall("(.*)(?=_[0-9]+)", Path(file).stem)[0] for file in train_files]
     train_labels = [data_indexed.at[name, "Label"] for name in names]
-    train_categories = [(label, int(not label)) for label in train_labels]
-
-    logging.info(train_categories[1495:1505])
 
     # Prepare data generators to get data out
     train_datagen = ImageDataGenerator(

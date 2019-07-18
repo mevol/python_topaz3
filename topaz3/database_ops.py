@@ -1,10 +1,10 @@
 """Module for database operations which are necessary for the smooth operation of this package"""
 
-import sqlite3
 import logging
-import pandas
-
+import sqlite3
 from pathlib import Path
+
+import pandas
 
 
 def prepare_training_database(database, results):

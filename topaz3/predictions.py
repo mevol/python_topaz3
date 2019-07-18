@@ -1,13 +1,14 @@
 """Module containing useful functions for getting predictions on
 images from a model and outputting the predictions in a useful format"""
 
-import configargparse
-import logging
-import mrcfile
 import json
-import numpy as np
-import keras.models
+import logging
 from pathlib import Path
+
+import configargparse
+import keras.models
+import mrcfile
+import numpy as np
 
 from topaz3.maps_to_images import slice_map
 

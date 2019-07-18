@@ -1,8 +1,7 @@
 """Functions to get the correlation coefficients from lst files"""
 
-import re
 import logging
-
+import re
 from pathlib import Path
 
 

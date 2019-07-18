@@ -3,14 +3,14 @@
 import argparse
 import logging
 import os
-from pathlib import Path
+import sqlite3
 import sys
+from pathlib import Path
+
 import yaml
 
-import sqlite3
-
-from topaz3.prepare_training_data import prepare_training_data
 from topaz3.maps_to_images import directory_to_images
+from topaz3.prepare_training_data import prepare_training_data
 
 example_config = """phase_dir: /phase/directory/path
 cell_info_dir: /cell/info/directory

@@ -1,9 +1,10 @@
 """Functions for extracting information from an mtz file"""
 
-import os
-import procrunner
-import re
 import argparse
+import os
+import re
+
+import procrunner
 
 
 def mtz_get_xdata(mtz_filename):

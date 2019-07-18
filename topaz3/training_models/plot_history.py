@@ -1,9 +1,10 @@
 """Plot the history of a keras model"""
 
-import pandas
-import matplotlib.pyplot as plt
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas
 
 
 def figure_from_csv(history_file):

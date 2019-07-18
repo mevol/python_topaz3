@@ -1,11 +1,12 @@
 """Find the space group information from a file, should work for multiple file inputs"""
 
-import re
-import os
-from pathlib import Path
 import logging
-import procrunner
+import os
+import re
 import sys
+from pathlib import Path
+
+import procrunner
 
 
 def find_space_group(text):

@@ -1,13 +1,14 @@
 """This file contains the main script for converting phase information
 into a regularly sized electron density map using tools from CCP4"""
 
-import procrunner
-import os
 import logging
-
+import os
 from pathlib import Path
+
+import procrunner
+
 from topaz3.mtz_info import mtz_get_cell
-from topaz3.space_group import textfile_find_space_group, mtz_find_space_group
+from topaz3.space_group import mtz_find_space_group, textfile_find_space_group
 
 log = logging.getLogger(name="debug_log")
 userlog = logging.getLogger(name="usermessages")

@@ -1,8 +1,7 @@
-import glob
-import os
-import logging
 import argparse
-
+import glob
+import logging
+import os
 from pathlib import Path
 
 

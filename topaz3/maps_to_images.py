@@ -1,12 +1,13 @@
 """Will contain all the functions necessary for creating raw image files from the maps directories for machine learning"""
 
-import numpy as np
-import matplotlib.pyplot as plt
+import argparse
 import logging
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 import mrcfile
+import numpy as np
 from PIL import Image
-import argparse
 
 
 def slice_map(volume, slices_per_axis):

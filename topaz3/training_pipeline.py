@@ -5,29 +5,28 @@ Designed to make it easier to create and evaluate models with different architec
 same training parameters.
 """
 
-# Necessary to make the run as consistent as possible
-from numpy.random import seed
-
-seed(1)
-from tensorflow import set_random_seed
-
-set_random_seed(2)
-
 import logging
-import sqlite3
-import re
-from pathlib import Path
 import os
+import re
+import sqlite3
 import sys
 from datetime import datetime
-import yaml
+from pathlib import Path
 
 import configargparse
 import pandas
+import yaml
+# Necessary to make the run as consistent as possible
+from numpy.random import seed
+from tensorflow import set_random_seed
 
-from topaz3.training_models.plot_history import history_to_csv
-from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
 from topaz3.evaluate_model import evaluate
+from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
+from topaz3.training_models.plot_history import history_to_csv
+
+seed(1)
+
+set_random_seed(2)
 
 
 def pipeline(model, rgb=False):

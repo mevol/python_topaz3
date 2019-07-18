@@ -5,11 +5,10 @@ used to easily achieve a good practice of logging. Modify the local copy as per
 the project or site requirements.
 """
 
-import os
 import json
 import logging.config
+import os
 import threading
-
 
 default_config = {
     "version": 1,

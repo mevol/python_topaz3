@@ -1,7 +1,7 @@
-from setuptools import setup
-
 # these lines allow the version to be specified in Makefile.private
 import os
+
+from setuptools import setup
 
 version = os.environ.get("MODULEVER", "0.0")
 

@@ -1,17 +1,17 @@
 """Load a model and evaluate its performance against an unknown test set"""
-import sys
-import logging
 import glob
-import numpy as np
-import sqlite3
-import pandas
-import re
+import logging
 import os
-
-# encode text category labels
+import re
+import sqlite3
+import sys
 from pathlib import Path
-from keras.preprocessing.image import ImageDataGenerator
+
+import configargparse
 import keras.models
+import numpy as np
+import pandas
+from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import classification_report, confusion_matrix
 
 IMG_DIM = (201, 201)
@@ -277,7 +277,26 @@ def evaluate(
     return True
 
 
+def evaluate(
+    model_file: str,
+    test_dir: str,
+    database_file: str,
+    output_dir: str,
+    slices_per_structure: int = 60,
+    rgb: bool = False,
+):
+    pass
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    evaluate(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    parser = configargparse.ArgumentParser(
+        config_file_parser_class=configargparse.YAMLConfigFileParser,
+        description="Perform and record evaluation of a model from test files using per image predictions, "
+        "predictions based on the average score of all the slices in a structure, "
+        "and predictions based on counting predictions."
+        "Results given as raw scores per prediction, classification report and confusion matrix",
+    )
+
+    args = parser.parse_args()

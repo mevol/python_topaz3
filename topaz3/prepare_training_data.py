@@ -1,15 +1,16 @@
-import logging
 import argparse
+import logging
+from pathlib import Path
+from typing import List
+
 import yaml
 
-from pathlib import Path
-from topaz3.mtz_info import mtz_get_cell
-from topaz3.space_group import textfile_find_space_group, mtz_find_space_group
 from topaz3.conversions import phase_to_map
+from topaz3.database_ops import prepare_labels_database, prepare_training_database
 from topaz3.delete_temp_files import delete_temp_files
 from topaz3.get_cc import get_cc
-from topaz3.database_ops import prepare_training_database, prepare_labels_database
-from typing import List
+from topaz3.mtz_info import mtz_get_cell
+from topaz3.space_group import mtz_find_space_group, textfile_find_space_group
 
 
 def prepare_training_data(
