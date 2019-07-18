@@ -70,7 +70,7 @@ def main():
     )
 
     parser.add_argument(
-        "config_file", help="yaml file which contains parameters for data preparation"
+        "config", help="yaml file which contains parameters for data preparation"
     )
     parser.add_argument(
         "--make-output",
