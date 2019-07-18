@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import sqlite3
-import sys
 from pathlib import Path
 
 import configargparse
@@ -89,9 +88,16 @@ def evaluate(
 
     logging.info("Getting predictions")
 
-    predictions = model.predict_generator(
-        test_generator, steps=int(len(testing_dataframe["Files"]) / test_batch_size)
-    )
+    try:
+        predictions = model.predict_generator(
+            test_generator, steps=int(len(testing_dataframe["Files"]) / test_batch_size)
+        )
+    except ValueError:
+        logging.exception(
+            "Ensure the RGB option is set correctly for your model - "
+            "Some models expect 3 channel data"
+        )
+        raise
 
     # Per image analysis
     predictions_1 = [x for x in predictions if x[1] > x[0]]
@@ -277,17 +283,6 @@ def evaluate(
     return True
 
 
-def evaluate(
-    model_file: str,
-    test_dir: str,
-    database_file: str,
-    output_dir: str,
-    slices_per_structure: int = 60,
-    rgb: bool = False,
-):
-    pass
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
@@ -295,8 +290,54 @@ if __name__ == "__main__":
         config_file_parser_class=configargparse.YAMLConfigFileParser,
         description="Perform and record evaluation of a model from test files using per image predictions, "
         "predictions based on the average score of all the slices in a structure, "
-        "and predictions based on counting predictions."
-        "Results given as raw scores per prediction, classification report and confusion matrix",
+        "and predictions based on counting predictions. "
+        "Results given as raw scores per prediction, classification report and confusion matrix.",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--config",
+        is_config_file=True,
+        help="yaml config file to provide parameters in",
+    )
+    parser.add_argument(
+        "--model_file", required=True, help=".h5 file to load the model from"
+    )
+    parser.add_argument(
+        "--test_dir",
+        required=True,
+        help="directory of images to use as test data - should not form part of model training or validation data",
+    )
+    parser.add_argument(
+        "--database_file",
+        required=True,
+        help="sqlite3 database with labels for test images",
+    )
+
+    parser.add_argument(
+        "--output_dir", required=True, help="directory to output results files to"
+    )
+
+    parser.add_argument(
+        "--slices_per_structure",
+        required=True,
+        type=int,
+        help="number of images to count as one structure",
+    )
+    parser.add_argument(
+        "--rgb",
+        action="store_true",
+        default=False,
+        help="set this parameter if the model is expecting rgb images",
     )
 
     args = parser.parse_args()
+
+    evaluate(
+        args.model_file,
+        args.test_dir,
+        args.database_file,
+        args.output_dir,
+        args.slices_per_structure,
+        args.rgb,
+    )

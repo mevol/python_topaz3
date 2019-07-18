@@ -161,7 +161,8 @@ if __name__ == "__main__":
 
     # Set up parser to work with command line argument or yaml file
     parser = configargparse.ArgParser(
-        config_file_parser_class=configargparse.YAMLConfigFileParser
+        config_file_parser_class=configargparse.YAMLConfigFileParser,
+        description="Generate predictions from original and inverse hand map files using the model provided.",
     )
 
     parser.add_argument(
