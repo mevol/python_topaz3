@@ -11,7 +11,7 @@ def figure_from_csv(history_file):
     history = pandas.read_csv(history_file)
 
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-    t = f.suptitle(Path(history_file).stem, fontsize=12)
+    f.suptitle(Path(history_file).stem, fontsize=12)
     f.subplots_adjust(top=0.85, wspace=0.3)
 
     epochs = len(history["Accuracy"])
@@ -22,14 +22,14 @@ def figure_from_csv(history_file):
     ax1.set_ylabel("Accuracy Value")
     ax1.set_xlabel("Epoch")
     ax1.set_title("Accuracy")
-    l1 = ax1.legend(loc="best")
+    ax1.legend(loc="best")
 
     ax2.plot(epoch_list, history["Loss"], label="Train Loss")
     ax2.plot(epoch_list, history["Val Loss"], label="Validation Loss")
     ax2.set_ylabel("Loss Value")
     ax2.set_xlabel("Epoch")
     ax2.set_title("Loss")
-    l2 = ax2.legend(loc="best")
+    ax2.legend(loc="best")
 
     return f
 
