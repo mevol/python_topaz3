@@ -1,74 +1,183 @@
-# Preparation
+# Usage
 
-Before reading about how to use this function, take a moment to look at the diagram below which shows the expected directory structure.
-This is based on the initial training set at Diamond and may change in the future.
-Input parameters are in ***bold italics***.
-![Prepare training data diagram](images/prepare_training_data.png?raw=true "Inputs to prepare training data")
+## Prepare some data
 
-**Inputs**
-- *phase_directory* - directory with phase information for all the structures you wish to turn into map data ready for training
-- *cell_info_directory* - directory with cell info file for all structures
-- *cell_info_path* - path for cell info file within each structure directory
-- *space_group_directory* - directory with space space group file for all structures
-- *space_group_path* - path for space group file within each structure directory
-- *xyz_limits* - list or tuple of three integers specifying the size of the output map
-- *database* - location of the database from which to store the truth values
-- *output_directory* - directory in which to put all of the output files, must exist before runtime
-- *delete_temp* - binary on whether or not to delete files produced during the intermediate steps, True by default
+This package was designed for use at Diamond Light Source.
+As such some assumptions have been made in encompassing scripts about file layout and information.
+The Diamond use case will be discussed first and then the building blocks will be explained, which should help you implement the functionality here even if your setup is different.
 
-**NOTE:** Absolute paths are used for directories, relative paths below the structure directory are used for ***cell_info_path*** and ***space_group_path*** (no leading slash)
+It is assumed that some processing output will have provided a directory with many structures, each of which has the following information:
+- original and inverse phase files
+- cell group information in a .mtz file
+- space group information in a .mtz or log file
 
-**Outputs**
-- *Output files* - .map files with the specified dimensions
-- *Temporary files* - some files marked with *_temp* which are the files created during the intermediate steps of the transformation
-- If the function ran properly, it should return *True*
+This will look *roughly* like:
 
-**From yaml file**
+![Directory map](/images/prepare_training_data.png)
 
-As there are so many inputs which are likely to be long filepaths, it will be easier to execute with the aid of a yaml file.
-Use the below template (keys are correct, values are not):
+Note that this allows for the phase, cell and space information to be in entirely separate locations.
+The important thing is that the directories all contain the same structure directories inside them.
+
+From there, the path to the specific files can be defined relative to the structure directories.
+This assumes that the cell and space files are in the same location within each structure directory.
+
+**Example**: the cell info file for a structure with a [PDB ID](https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html) of 4PIB
+may be located at */scratch/ai_research/structures/4PIB/metadata/cell_info.mtz*.
+In this case, the **cell_info_dir** would be */scratch/ai_research/structures* and the
+**cell_info_path** would be *metadata/cell_info.mtz*.
+At runtime, this will generate the full path for each structure in the cell info directory with the pattern
+*{cell_info_dir}/{structure}/{cell_info_path}*.
+The same process is applied for the space group prameters.
+
+The phase information is located by searching the structure directory for a folder which matches the best space group label found in the space group file.
+For example, this will be of the form "P12121".
+The original and inverse phase files are both assumed to be within this directory.
+
+From there, you must define *xyz* limits for the map file transformation.
+We used 200x200x200 and a cube is required for further transformations using provided tools here.
+
+Each phase file will produce a corresponding .map file in a folder you can define.
+
+You may also choose to generate labels in a database based on the CC values of the original vs inverse hand.
+
+Finally, the maps are sliced up into 2D image files and stored in the image directory for training.
+
+As you can see, there are many parameters necessary for this processing, so the tool provided requires a [yaml](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html) configuration file input.
+You can generate this file now with:
+
+``bash
+topaz3.prepare --example config.yaml
+``
+
+which will generate a file that looks like this:
 ```yaml
 phase_dir: /phase/directory/path
 cell_info_dir: /cell/info/directory
-cell_info_path: cell/info/path
+cell_info_path: cell/info/path.mtx
 space_group_dir: /space/group/directory
-space_group_path: space/group/path
+space_group_path: space/group/path.log
 xyz_limits:
   - 200
   - 200
   - 200
-db_path: /db/is/here
-output_dir: /output/directory/path
-```
-You may then execute the command with
-```bash
-python3 prepare_training_data.py yaml {config_file_path.yaml}
+db_path: /db/is/here.db
+maps_dir: /output/maps/directory
+slices_per_axis: 20
+images_dir: /output/images/directory
 ```
 
-**From command line**
-
-To execute directly from the command line, use the same module but with *cmd* keyword before the positional arguments.
-Here is the help text:
+From here, simple change the file paths according to the specification above and trigger the data preparation with:
 ```bash
-usage: prepare_training_data.py cmd [-h] [--keep_temp]
-                                    phase_dir cell_info_dir cell_info_path
-                                    space_group_dir space_group_path xyz xyz
-                                    xyz db output_dir
+topaz3.prepare config.yaml --make-output
+```
+*--make-output* simply generates the output directories and database if it cannot find them.
+Leave it out to ensure only directories and databases which already exist are used.
+
+If you want to perform the transformation but not produce results in a database, simply remove the *db_path* line from the config file.
+You may want to do this if you have already generated your labels from well processed data and now want to repeat the data preparation and training cycle on different versions of the same structures.
+
+You can check this has worked properly by looking in the map and images directory you specified.
+
+Within the database there should now be two tables, ai_data and ai_labels, which can be used for training.
+
+**Note:** If you are not at Diamond, you may experience some issues with the shell scripts.
+Go to topaz3/shell_scripts and alter these such that they run on your machine/system.
+Most of this software is related to the [CCP4 project](http://www.ccp4.ac.uk/) and should be freely available.
+
+## Underlying functions
+
+### Files to map
+
+The high level conversion for a phase file to a regularized map file is as follows:
+
+**Inputs**
+
+- *phase_filename* - absolute file location of the phase file you wish to transform. Must be .phs or .pha
+- *cell_info_filepath* - absolute file location of the file with cell information (lengths and angles) which will be used to calculate the transformation.
+- *space_group_filepath* - absolute file location of the file which contains the correct space group for the phase file. Can be a .mtz or some other file.
+- *xyz_limits* - list with three integer values which are the dimensions of the map file to be outputted.
+- *output_filename* - absolute file location of the output file, must be in an already existing directory.
+
+**Outputs**
+
+- *Ouptut file* - .map file with the specified dimensions
+- *Temporary files* - some files marked with *_temp* which are the files created during the intermediate steps of the transformation
+- If the function ran properly, it should return *True*
+
+**Example**
+
+```python
+from topaz3.conversions import files_to_map
+files_to_map("/location/of/phase/file/structure.phs",
+             "/location/of/cell/info/cell_info.mtz",
+             "/location/of/space/group/simple_xia2_to_shelxcde.log",
+             [200, 200, 200],
+             "/location/of/output/output.map")
+```
+
+### Phase to map
+This is the function which sits inside *files_to_map* and it can be accessed directly if so wished.
+
+**Inputs**
+- *phase_filename* - absolute file location of the phase file you wish to transform. Must be .phs or .pha
+- *cell_info* - list of 6 values for the cell lengths and angles in the form *[a, b, c, alpha, beta, gamma]* 
+- *space_group* - string of the space group, e.g *"P121"*, but can also be an integer for the standard space group number. String preferred as more exact.
+- *xyz_limits* - list with three integer values which are the dimensions of the map file to be outputted.
+- *output_filename* - absolute file location of the output file, must be in an already existing directory.
+
+**Outputs**
+
+- *Output file* - .map file with the specified dimensions
+- *Temporary files* - some files marked with *_temp* which are the files created during the intermediate steps of the transformation
+- If the function ran properly, it should return *True*
+
+**Example**
+
+```python
+from topaz3.conversions import phase_to_map
+phase_to_map("/location/of/phase/file/structure.phs",
+             [66.45, 112.123, 149.896, 90, 90, 90],
+             "P212121",
+             [200, 200, 200],
+             "/location/of/output/output.map")
+```
+
+### Maps to Images
+
+Now that you have generated all of your map files, it is necessary to slice them up into many images for training, validating and testing the machine learning model.
+
+This is a relatively easy process, although it can take some time.
+By default, the program will display output to the terminal to let you know it is working.
+
+```bash
+python topaz3/maps_to_images.py --help
+usage: maps_to_images.py [-h] [--slices SLICES] [--quiet] [--test]
+                         maps_directory output_directory
+
+Converts directory of map files to image slices.
 
 positional arguments:
-  phase_dir         top level directory for phase information
-  cell_info_dir     top level directory for cell info
-  cell_info_path    cell info file within each structure folder
-  space_group_dir   top level directory for space group
-  space_group_path  space group file within each structure folder
-  xyz               xyz size of the output map file
-  db                location of the sqlite3 database to store training
-                    information
-  output_dir        directory to output all map files to
+  maps_directory    directory which contains map files
+  output_directory  directory to output image files to
 
 optional arguments:
   -h, --help        show this help message and exit
-  --keep_temp       keep the temporary files after processing
+  --slices SLICES   optionally specify the number of slices per axis,
+                    default=20
+  --quiet           no terminal output during healthy execution
+  --test            run test of sphere with graphical output
 ```
 
-More information about specific conversions can be found [here](documentation/conversions.md).
+The number of slices per axis is defaulted to 20.
+This will generate 60 images for each map in the output_directory file.
+
+The function itself is implemented like this:
+
+```python
+def directory_to_images(
+    input_directory: str,
+    slices_per_axis: int,
+    output_directory: str,
+    output: bool = False,
+)
+```

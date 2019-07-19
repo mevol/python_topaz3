@@ -23,7 +23,6 @@ from datetime import datetime
 from typing import Callable
 
 import configargparse
-import keras
 import pandas
 import yaml
 from keras import Model
@@ -228,7 +227,7 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
 
 
 def pipeline_from_command_line(
-    create_model: Callable[[int, int, int], keras.Model], rgb: bool = False
+    create_model: Callable[[int, int, int], Model], rgb: bool = False
 ):
     """Run the training pipeline from the command line with config file"""
 

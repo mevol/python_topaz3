@@ -1,5 +1,7 @@
 # Predictions
 
+This page will document how to use the command line tools to perform prediction using trained models.
+
 Predictions using a particular model for a map file (which has been regularized to the 201x201x201 size using the provided conversion methods) can be calculated with predictions.py
 
 To get the predictions from a single map file:

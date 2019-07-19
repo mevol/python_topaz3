@@ -63,6 +63,9 @@ target/
 /.settings/
 /.pydevproject
 
+# Sphinx built documents
+/documentation/_build
+
 # DLS build dir and virtual environment
 /prefix/
 /venv/
