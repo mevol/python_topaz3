@@ -18,30 +18,230 @@ import sqlite3
 import re
 from pathlib import Path
 import os
-import sys
+import shutil
 from datetime import datetime
-import yaml
+from typing import Callable
 
 import configargparse
-from keras.preprocessing.image import ImageDataGenerator
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.models import Sequential
 import keras
 import pandas
+import yaml
+from keras import Model
+from keras.preprocessing.image import ImageDataGenerator
 
 from topaz3.training_models.plot_history import history_to_csv
 from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
 from topaz3.evaluate_model import evaluate
 
 
-def pipeline(model, rgb=False):
+IMG_DIM = (201, 201)
+
+logging.basicConfig(level=logging.INFO, filename="training.log", filemode="w")
+
+
+def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: dict):
     """Execute the pipeline on the model provided.
 
     :param model: Keras model to train and evaluate
     :param rgb: set this to true only if the model you have provided is expecting an rgb image
     """
 
-    pass
+    # Create an output directory if it doesn't exist
+    output_dir_path = Path(
+        parameters_dict["output_dir"] + "_" + datetime.now().strftime("%Y%m%d_%H%M")
+    )
+    histories_path = output_dir_path / "histories"
+    models_path = output_dir_path / "models"
+    evaluations_path = output_dir_path / "evaluations"
+
+    if not output_dir_path.exists():
+        # Make one
+        try:
+            # Make directories
+            os.mkdir(output_dir_path)
+            os.mkdir(histories_path)
+            os.mkdir(models_path)
+            os.mkdir(evaluations_path)
+            logging.info(f"Created output directories at {output_dir_path}")
+        except Exception:
+            logging.exception(
+                f"Could not create directory at {output_dir_path}.\n"
+                f"Please check permissions and location."
+            )
+            raise
+
+    # Log parameters
+    logging.info(f"Running with parameters: {parameters_dict}")
+
+    # Load files
+    training_dir_path = Path(parameters_dict["training_dir"])
+    assert (
+        training_dir_path.exists()
+    ), f"Could not find directory at {training_dir_path}"
+    train_files = [str(file) for file in training_dir_path.iterdir()]
+    assert len(train_files) > 0, f"Found no files in {training_dir_path}"
+    logging.info(f"Found {len(train_files)} files for training")
+
+    # Initiate connection to the database
+    try:
+        conn = sqlite3.connect(parameters_dict["database_file"])
+    except Exception:
+        logging.error(
+            f"Could not connect to database at {parameters_dict['database_file']}"
+        )
+        raise
+
+    # Read table into pandas dataframe
+    data = pandas.read_sql(f"SELECT * FROM ai_labels", conn)
+    data_indexed = data.set_index("Name")
+
+    # Strip the image number from the filename
+    names = [re.findall("(.*)(?=_[0-9]+)", Path(file).stem)[0] for file in train_files]
+    train_labels = [data_indexed.at[name, "Label"] for name in names]
+
+    # Prepare data generators to get data out
+    # Always rescale and also expand dictionary provided as parameter
+    train_datagen = ImageDataGenerator(
+        rescale=1.0 / 255, **parameters_dict["image_augmentation_dict"]
+    )
+    # Only rescale validation
+    validation_datagen = ImageDataGenerator(rescale=1.0 / 255)
+
+    # Build model
+    if parameters_dict["rgb"] is True:
+        logging.info("Using 3 channel image input to model")
+        input_shape = (201, 201, 3)
+        color_mode = "rgb"
+    else:
+        logging.info("Using single channel image input to model")
+        input_shape = (201, 201, 1)
+        color_mode = "grayscale"
+
+    # Create training dataframe
+    training_dataframe = pandas.DataFrame(
+        {"Files": train_files, "Labels": [str(label) for label in train_labels]}
+    )
+    training_dataframe.set_index("Files")
+    training_data_shuffled = training_dataframe.sample(frac=1)
+
+    # Train the model k-fold number of times on different folds and record the output
+    # Model run parameters
+    k_folds = parameters_dict["k_folds"]
+    runs = parameters_dict["runs"]
+    epochs = parameters_dict["epochs"]
+    batch_size = parameters_dict["batch_size"]
+
+    fold_boundaries = k_fold_boundaries(train_files, k_folds)
+    for k in range(runs):
+        logging.info(f"Running cross validation set {k + 1}")
+
+        # New model
+        model = create_model(input_shape)
+
+        # Separate the active training and validations set based on the fold boundaries
+        active_training_set = pandas.concat(
+            [
+                training_data_shuffled[: fold_boundaries[k][0]],
+                training_data_shuffled[fold_boundaries[k][1] :],
+            ]
+        )
+        active_validation_set = training_data_shuffled[
+            fold_boundaries[k][0] : fold_boundaries[k][1]
+        ]
+
+        logging.info(f"Active training set of {len(active_training_set['Files'])}")
+        logging.info(f"Active validation set of {len(active_validation_set['Files'])}")
+
+        # Create generators
+        train_generator = train_datagen.flow_from_dataframe(
+            active_training_set,
+            x_col="Files",
+            y_col="Labels",
+            target_size=IMG_DIM,
+            color_mode=color_mode,
+            shuffle=True,
+            batch_size=batch_size,
+            class_mode="categorical",
+        )
+
+        val_generator = validation_datagen.flow_from_dataframe(
+            active_validation_set,
+            x_col="Files",
+            y_col="Labels",
+            target_size=IMG_DIM,
+            color_mode=color_mode,
+            shuffle=True,
+            batch_size=batch_size,
+            class_mode="categorical",
+        )
+
+        history = model.fit_generator(
+            train_generator,
+            steps_per_epoch=int((len(active_training_set["Files"]) / batch_size)),
+            epochs=epochs,
+            validation_data=val_generator,
+            validation_steps=(len(active_validation_set["Files"]) / batch_size),
+            use_multiprocessing=True,
+            workers=8,
+        )
+
+        # Send history to csv
+        history_to_csv(history, histories_path / f"history_{k}.csv")
+        # Save model as h5
+        model.save(str(models_path / f"model_{k}.h5"))
+
+        # Make evaluation folder
+        if parameters_dict["test_dir"] and parameters_dict["slices_per_structure"]:
+            logging.info("Performing evaluation of model")
+            evaluation_dir_path = str(evaluations_path / f"evaluation_{k}")
+            if not Path(evaluation_dir_path).exists():
+                os.mkdir(evaluation_dir_path)
+            evaluate(
+                str(models_path / f"model_{k}.h5"),
+                parameters_dict["test_dir"],
+                parameters_dict["database_file"],
+                evaluation_dir_path,
+            )
+        else:
+            logging.info(
+                "Requires test directory and slices_per_structure for evaluation. "
+                "No evaluation performed"
+            )
+
+    # Log the key information about the model and run
+    key_info = parameters_dict
+    with open(output_dir_path / "parameters.yaml", "w") as f:
+        yaml.dump(key_info, f)
+    with open(output_dir_path / "model_info.yaml", "w") as f:
+        yaml.dump(model.get_config())
+
+    # Try to copy log file if it was created in training.log
+    try:
+        shutil.copy("training.log", output_dir_path)
+    except FileExistsError:
+        logging.warning("Could not find training.log to copy")
+    except Exception:
+        logging.warning("Could not copy training.log to output directory")
+
+
+def pipeline_from_command_line(
+    create_model: Callable[[int, int, int], keras.Model], rgb: bool = False
+):
+    """Run the training pipeline from the command line with config file"""
+
+    # Get from pipeline
+    argument_dict = get_pipeline_parameters()
+
+    # Add rgb parameter
+    assert isinstance(
+        rgb, bool
+    ), f"Must provide bool for rgb, got {type(rgb)} of value {rgb}"
+    argument_dict["rgb"] = rgb
+
+    logging.info(f"Running model with parameters: {argument_dict}")
+
+    # Send parameters to full pipeline
+    pipeline(create_model, argument_dict)
 
 
 def get_pipeline_parameters() -> dict:
@@ -50,8 +250,6 @@ def get_pipeline_parameters() -> dict:
 
     :return parameters_dict: dictionary containing all parameters necessary for pipeline
     """
-
-    logging.basicConfig(level=logging.INFO)
 
     # Set up parser to work with command line argument or yaml file
     parser = configargparse.ArgParser(
