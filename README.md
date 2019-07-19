@@ -12,6 +12,15 @@ Specifically, it transforms electron density map data obtained from diffraction 
 
 Read the documentation about how it works at: https://python-topaz3.readthedocs.io/en/latest/
 
+## Prerequisites
+
+To use the machine learning side of Topaz3, [*tensorflow-gpu*](https://www.tensorflow.org/install/gpu) is required.
+This speeds up the training and use of neural networks.
+However, there are some restrictions regarding what version of *tensorflow-gpu* can be used, depending on the version of CUDA supported by the GPU.
+Use the table on [this page](https://www.tensorflow.org/install/source#tested_build_configurations) to make sure that the setup you plan to run on is installed correctly.
+
+**Topaz3** was developed and tested with *tensorflow-gpu 1.12.0* and *CUDA 9*.
+
 ## Installation
 
 Clone the repository from the [source code](https://github.com/TimGuiteDiamond/topaz3) on Github:
