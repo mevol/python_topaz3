@@ -73,6 +73,10 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
     # Log parameters
     logging.info(f"Running with parameters: {parameters_dict}")
 
+    # Log the key information about the model and run
+    with open(output_dir_path / "parameters.yaml", "w") as f:
+        yaml.dump(parameters_dict, f)
+
     # Load files
     training_dir_path = Path(parameters_dict["training_dir"])
     assert (
@@ -137,6 +141,7 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
 
         # New model
         model = create_model(input_shape)
+        model_info = model.get_config()
 
         # Separate the active training and validations set based on the fold boundaries
         active_training_set = pandas.concat(
@@ -201,6 +206,7 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
                 parameters_dict["test_dir"],
                 parameters_dict["database_file"],
                 evaluation_dir_path,
+                rgb=parameters_dict["rgb"],
             )
         else:
             logging.info(
@@ -208,12 +214,9 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
                 "No evaluation performed"
             )
 
-    # Log the key information about the model and run
-    key_info = parameters_dict
-    with open(output_dir_path / "parameters.yaml", "w") as f:
-        yaml.dump(key_info, f)
+    # Load the model config information as a yaml file
     with open(output_dir_path / "model_info.yaml", "w") as f:
-        yaml.dump(model.get_config())
+        yaml.dump(model_info, f)
 
     # Try to copy log file if it was created in training.log
     try:
