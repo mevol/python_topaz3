@@ -32,10 +32,10 @@ def params_from_yaml(args):
     """Extract the parameters for preparation from a yaml file and return a dict"""
     # Check the path exists
     try:
-        config_file_path = Path(args.config_file)
+        config_file_path = Path(args.config)
         assert config_file_path.exists()
     except Exception:
-        logging.error(f"Could not find config file at {args.config_file}")
+        logging.error(f"Could not find config file at {args.config}")
         raise
 
     # Load the data from the config file
@@ -78,18 +78,20 @@ def main():
         help="automatically generate maps and images directories and database for output",
     )
     parser.add_argument(
-        "--example", action="store_true", help="creates example in the config_file"
+        "--example",
+        action="store_true",
+        help="creates example in the file provided as *config* option",
     )
 
     args = parser.parse_args()
 
     if args.example:
-        logging.info(f"Creating example in {args.config_file}")
+        logging.info(f"Creating example in {args.config}")
         with open(args.config, "w") as cf:
             cf.write(example_config)
         sys.exit(0)
 
-    logging.info(f"Extracting parameters from {args.config_file}")
+    logging.info(f"Extracting parameters from {args.config}")
     parameters = params_from_yaml(args)
 
     if args.make_output:
