@@ -1,4 +1,5 @@
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/DiamondLightSource/python-topaz3.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DiamondLightSource/python-topaz3/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/DiamondLightSource/python-topaz3.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DiamondLightSource/python-topaz3/context:python)
 ![Black Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 # Topaz3
