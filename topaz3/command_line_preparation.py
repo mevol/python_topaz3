@@ -85,7 +85,7 @@ def main():
 
     if args.example:
         logging.info(f"Creating example in {args.config_file}")
-        with open(args.config_file, "w") as cf:
+        with open(args.config, "w") as cf:
             cf.write(example_config)
         sys.exit(0)
 
