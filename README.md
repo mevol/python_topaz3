@@ -1,6 +1,6 @@
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/DiamondLightSource/python-topaz3.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DiamondLightSource/python-topaz3/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/DiamondLightSource/python-topaz3.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DiamondLightSource/python-topaz3/context:python)
-[![Black Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)]
+![Black Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)
 [![Documentation Status](https://readthedocs.org/projects/python-topaz3/badge/?version=latest)](https://python-topaz3.readthedocs.io/en/latest/?badge=latest)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
