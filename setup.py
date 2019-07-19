@@ -14,7 +14,7 @@ setup(
     author_email="tim.guite@diamond.ac.uk",
     packages=["topaz3"],
     install_requires=[
-        "tensorflow-gpu",
+        "tensorflow-gpu=1.12",
         "Keras",
         "Pillow",
         "procrunner",
@@ -24,6 +24,7 @@ setup(
         "pandas",
         "logconfig",
         "matplotlib",
+        "configargparse",
     ],
     entry_points={
         "console_scripts": ["topaz3.prepare = topaz3.command_line_preparation:main"]
