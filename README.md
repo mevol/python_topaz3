@@ -23,7 +23,7 @@ Use the table on [this page](https://www.tensorflow.org/install/source#tested_bu
 
 ## Installation
 
-Clone the repository from the [source code](https://github.com/TimGuiteDiamond/topaz3) on Github:
+Clone the repository from the [source code](https://github.com/DiamondLightSource/python-topaz3.git) on Github:
 
 ```bash
 git clone https://github.com/TimGuiteDiamond/topaz3.git
@@ -71,3 +71,16 @@ If you want to develop and contribute, follow these steps:
 ## Contributing
 
 Changes to this project should use pre-commit with flake8 and black checks
+
+Install the pre-commit hooks with:
+
+```bash
+pre-commit install
+```
+
+## Authors
+
+This repository was developed at **Diamond Light Source**
+
+- Lead Developer: Tim Guite
+- Supervisor: Melanie Vollmar
