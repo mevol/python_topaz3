@@ -3,10 +3,10 @@
 import logging
 from typing import Tuple
 
-import keras
-from keras import Sequential
+from keras import Sequential, optimizers
 from keras.applications import vgg16
-from keras.layers import Dense, Dropout
+from keras.models import Model
+from keras.layers import Dense, Dropout, Flatten
 
 from topaz3.training_models.training_pipeline import pipeline_from_command_line
 
@@ -17,8 +17,8 @@ def create_pretrained_cnn_model(input_shape: Tuple[int, int, int]):
     vgg = vgg16.VGG16(include_top=False, weights="imagenet", input_shape=input_shape)
 
     output = vgg.layers[-1].output
-    output = keras.layers.Flatten()(output)
-    vgg_model = keras.models.Model(vgg.input, output)
+    output = Flatten()(output)
+    vgg_model = Model(vgg.input, output)
 
     logging.info(f"VGG Model Summary: {vgg_model.summary()}")
 
@@ -33,7 +33,7 @@ def create_pretrained_cnn_model(input_shape: Tuple[int, int, int]):
 
     model.compile(
         loss="categorical_crossentropy",
-        optimizer=keras.optimizers.adam(lr=1e-5),
+        optimizer=optimizers.adam(lr=1e-5),
         metrics=["accuracy"],
     )
 

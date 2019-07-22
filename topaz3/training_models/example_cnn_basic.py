@@ -2,8 +2,7 @@
 
 from typing import Tuple
 
-import keras
-from keras import Sequential
+from keras import Sequential, optimizers
 from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 
 from topaz3.training_models.training_pipeline import pipeline_from_command_line
@@ -32,7 +31,7 @@ def create_basic_cnn_model(input_shape: Tuple[int, int, int]):
 
     model.compile(
         loss="categorical_crossentropy",
-        optimizer=keras.optimizers.adam(lr=1e-5),
+        optimizer=optimizers.adam(lr=1e-5),
         metrics=["accuracy"],
     )
 
