@@ -5,7 +5,7 @@ from typing import List
 
 import yaml
 
-from topaz3.conversions import phase_to_map
+from topaz3.conversions import phase_remove_bad_values, phase_to_map
 from topaz3.database_ops import prepare_labels_database, prepare_training_database
 from topaz3.delete_temp_files import delete_temp_files
 from topaz3.get_cc import get_cc
@@ -140,7 +140,7 @@ def prepare_training_data(
 
             # Catch a weird situation where some space groups RXX can also be called RXX:H
             if (space_group_dict[struct][0] == "R") and (
-                original_hand.exists() == False
+                original_hand.exists() is False
             ):
                 original_hand = Path(
                     phase_dir
@@ -164,9 +164,18 @@ def prepare_training_data(
             raise
 
         # Convert original
+        # Check the phase file first
+        original_hand_good = phase_remove_bad_values(
+            original_hand, output_dir.parent / (original_hand.stem + "_temp.phs")
+        )
+        # Log the result
+        if original_hand is not original_hand_good:
+            logging.info(
+                f"Filtered bad values from {original_hand.stem} and stored results in {original_hand_good}"
+            )
         try:
             phase_to_map(
-                original_hand,
+                original_hand_good,
                 cell_info_dict[struct],
                 space_group_dict[struct],
                 xyz_limits,
@@ -177,9 +186,18 @@ def prepare_training_data(
             raise
 
         # Convert inverse
+        # Check the phase file first
+        inverse_hand_good = phase_remove_bad_values(
+            inverse_hand, output_dir.parent / (inverse_hand.stem + "_temp.phs")
+        )
+        # Log the result
+        if inverse_hand is not inverse_hand_good:
+            logging.info(
+                f"Filtered bad values from {inverse_hand.stem} and stored results in {inverse_hand_good}"
+            )
         try:
             phase_to_map(
-                inverse_hand,
+                inverse_hand_good,
                 cell_info_dict[struct],
                 space_group_dict[struct],
                 xyz_limits,
@@ -216,7 +234,7 @@ def prepare_training_data(
 
                 # Catch a weird situation where some space groups RXX can also be called RXX:H
                 if (space_group_dict[struct][0] == "R") and (
-                    original_hand.exists() == False
+                    original_hand.exists() is False
                 ):
                     original_hand = Path(
                         phase_dir
@@ -276,7 +294,7 @@ def prepare_training_data(
         prepare_labels_database(str(database_path))
 
     # Delete temporary files if requested
-    if delete_temp == True:
+    if delete_temp is True:
         delete_temp_files(output_directory)
         logging.info("Deleted temporary files in output directory")
 
