@@ -20,6 +20,7 @@ so that they can be adapted to different situations.
    preparation
    training
    predictions
+   functions
    shell_scripts
 
 

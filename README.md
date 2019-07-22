@@ -70,7 +70,7 @@ If you want to develop and contribute, follow these steps:
 
 ## Contributing
 
-Changes to this project should use pre-commit with flake8 and black checks
+Changes to this project should use [pre-commit](https://pre-commit.com/) with flake8 and black checks
 
 Install the pre-commit hooks with:
 

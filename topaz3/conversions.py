@@ -4,6 +4,7 @@ into a regularly sized electron density map using tools from CCP4"""
 import logging
 import os
 from pathlib import Path
+from typing import Tuple
 
 import procrunner
 
@@ -14,9 +15,18 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
+def phs_to_mtz(
+    phase_filename: str, cell_info: Tuple, space_group: str, output_filename: str
+):
     """Use the CCP4 f2mtz utility to convert a phase file into a .mtz file
-     and return the new file location."""
+     and return the mtz file location.
+
+    :param phase_filename: input phase file to be transformed
+    :param cell_info: list of 6 floating point values with cell information
+    :param space_group: space group for structure, e.g "P212121"
+    :param output_filename: absolute path for the mtz output file
+    :returns: location of the mtz file
+     """
     try:
         phase_filepath = Path(phase_filename)
         output_filepath = Path(output_filename)
@@ -100,7 +110,12 @@ def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
 
 
 def mtz_to_map(mtz_filename, output_filename):
-    """Convert .mtz file to map using cfft utility and return the new output file location."""
+    """Convert .mtz file to map using CCP4 cfft utility and return the new output map location.
+
+    :param mtz_filename: input mtz file
+    :param output_filename: absolute path for the mtz output file
+    :returns: location of the mtz file
+    """
 
     try:
         mtz_filepath = Path(mtz_filename)
@@ -167,8 +182,20 @@ def mtz_to_map(mtz_filename, output_filename):
     return output_filepath
 
 
-def map_to_map(map_filename, xyz_limits, space_group, output_filename):
-    """Converts a map file to a map file with specific xyz dimensions and returns the output file location"""
+def map_to_map(
+    map_filename: str,
+    xyz_limits: Tuple[int, int, int],
+    space_group: str,
+    output_filename: str,
+):
+    """Converts a map file to a map file with specific xyz dimensions and returns the output file location
+
+    :param phase_filename: input phase file to check for bad values
+    :param space_group: space group for structure, e.g "P212121"
+    :param xyz_limits: size limits for the x, y, z axes of the output map
+    :param output_filename: absolute path for the map output file
+    :returns: location of output map
+    """
 
     try:
         map_filepath = Path(map_filename)
@@ -248,8 +275,23 @@ def map_to_map(map_filename, xyz_limits, space_group, output_filename):
     return output_filepath
 
 
-def phase_to_map(phase_filename, cell_info, space_group, xyz_limits, output_filename):
-    """Convert a phase file to a regularised map file with dimensions x, y, z"""
+def phase_to_map(
+    phase_filename: str,
+    cell_info: Tuple,
+    space_group: str,
+    xyz_limits: Tuple[int, int, int],
+    output_filename: str,
+):
+    """
+    Convert a phase file to a regularised map file with dimensions x, y, z using the space group and cell info provided.
+
+    :param phase_filename: input phase file to check for bad values
+    :param cell_info: list of 6 floating point values with cell information
+    :param space_group: space group for structure, e.g "P212121"
+    :param xyz_limits: x, y, z, size of the map output
+    :param output_filename: absolute path for the map output file
+    :returns: True
+    """
 
     try:
         phase_filepath = Path(phase_filename)
@@ -288,8 +330,8 @@ def phase_to_map(phase_filename, cell_info, space_group, xyz_limits, output_file
 
 def phase_remove_bad_values(phase_filename: str, output_filename: str) -> str:
     """
-    Inspects a phase file looking for lines with ******** values which represent bad data
-    If these lines are found, remove and write a temporary phase file out
+    Inspects a phase file looking for lines with ******** values which represent bad data.
+    If these lines are found, remove and write a temporary phase file out.
     Returns the filepath of the temporary file created, otherwise returns the original filepath
 
     :param phase_filename: input phase file to check for bad values
@@ -316,13 +358,24 @@ def phase_remove_bad_values(phase_filename: str, output_filename: str) -> str:
 
 
 def files_to_map(
-    phase_filename,
-    cell_info_filename,
-    space_group_filename,
-    xyz_limits,
-    output_filename,
+    phase_filename: str,
+    cell_info_filename: str,
+    space_group_filename: str,
+    xyz_limits: Tuple[int, int, int],
+    output_filename: str,
 ):
-    """Extract information from files before running the phase to map conversion"""
+    """
+    Extract information from files before running the phase to map conversion.
+
+    Checks phase file provided for bad values and amends if necesary with *phase_remove_bad_values*
+
+    :param phase_filename: phase file to convert to map
+    :param cell_info_filename: file with cell info, normally .mtz
+    :param space_group_filename: file with space group information, can be .mtz or other (.log, .txt, etc)
+    :param xyz_limits: x, y, z, size of the map output
+    :param output_filename: absolute path for the map output file. This will be used to generate temporary file names for the intermediate files
+    :return: True
+    """
 
     try:
         phase_filepath = Path(phase_filename)
