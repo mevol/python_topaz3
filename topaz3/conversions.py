@@ -91,7 +91,7 @@ def phs_to_mtz(phase_filename, cell_info, space_group, output_filename):
         result["stderr"] == b""
     ), f"Error collecting information from {phase_filepath} to {output_filepath}"
     assert (
-        result["timeout"] == False
+        result["timeout"] is not False
     ), f"Error collecting information from {phase_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
@@ -159,7 +159,7 @@ def mtz_to_map(mtz_filename, output_filename):
         result["stderr"] == b""
     ), f"Error collecting information from {mtz_filepath} to {output_filepath}"
     assert (
-        result["timeout"] == False
+        result["timeout"] is not False
     ), f"Error collecting information from {mtz_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
@@ -240,7 +240,7 @@ def map_to_map(map_filename, xyz_limits, space_group, output_filename):
         result["stderr"] == b""
     ), f"Error collecting information from {map_filepath} to {output_filepath}"
     assert (
-        result["timeout"] == False
+        result["timeout"] is not False
     ), f"Error collecting information from {map_filepath} to {output_filepath}"
 
     userlog.debug("Conversion successful")
@@ -284,6 +284,35 @@ def phase_to_map(phase_filename, cell_info, space_group, xyz_limits, output_file
     userlog.debug(f"Map successfully generated at {output_filepath}")
 
     return True
+
+
+def phase_remove_bad_values(phase_filename: str, output_filename: str) -> str:
+    """
+    Inspects a phase file looking for lines with ******** values which represent bad data
+    If these lines are found, remove and write a temporary phase file out
+    Returns the filepath of the temporary file created, otherwise returns the original filepath
+
+    :param phase_filename: input phase file to check for bad values
+    :param output_filename: file to store filtered output in if necessary
+    :returns: path of file with good values in
+    """
+    try:
+        phase_filepath = Path(phase_filename)
+        output_filepath = Path(output_filename)
+    except Exception:
+        raise Exception("Inputs must be absolute paths to files.")
+
+    with open(phase_filepath, "r") as phase_data:
+        lines = [line for line in phase_data]
+        filtered_phase = [line for line in lines if "******" not in line]
+
+    if (len(lines)) == len(filtered_phase):
+        return phase_filename
+    else:
+        # Write out to temporary file and return that
+        with open(output_filepath, "w") as filtered_phase_file:
+            filtered_phase_file.write("".join(filtered_phase))
+        return output_filename
 
 
 def files_to_map(
@@ -331,8 +360,19 @@ def files_to_map(
 
     log.info("Running phase to map conversion")
     try:
+        # Check the phase file first
+        phase_filepath_good = phase_remove_bad_values(
+            phase_filepath, output_filepath.parent + output_filepath.stem + "_temp.phs"
+        )
+        # Log the result
+        if phase_filepath is not phase_filepath_good:
+            logging.info(
+                f"Filtered bad values from phase filepath and stored results in {phase_filepath_good}"
+            )
+
+        # Run the conversion
         phase_to_map(
-            phase_filepath, cell_info, space_group, xyz_limits, output_filepath
+            phase_filepath_good, cell_info, space_group, xyz_limits, output_filepath
         )
     except Exception:
         log.error("Could not convert phase file to map")
