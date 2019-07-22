@@ -13,7 +13,7 @@ def find_space_group(text):
     """Open the filename at this path and try to extract a space group. Return space group string."""
 
     # Get the results which match lines of space group
-    potential_lines = re.findall("(?<=[sS]pace [gG]roup)(.*)", text)
+    potential_lines = re.findall("(?<=[sS]pace [gG]roup|[sS]pace[gG]roup)(.*)", text)
     logging.debug(potential_lines)
 
     # Get results which match the format of a space group - join for easier search and output
