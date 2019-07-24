@@ -78,10 +78,20 @@ def map_to_images(map_file: str, slices_per_axis: int, rgb: bool = False) -> np.
 
 
 def predictions_from_map(
-    map_file: str, slices_per_axis: int, model_file: str
+    map_file: str, slices_per_axis: int, model_file: str, rgb: bool = False
 ) -> np.ndarray:
-    """Get the image slices from a map file and get their predictions"""
-    image_stack = map_to_images(map_file, slices_per_axis)
+    """
+    Generate image slices from map file and get predictions from the model for each slice.
+
+    Return the raw image predictions as a numpy array.
+
+    :param map_file: map file to get predictions from
+    :param slices_per_axis: number of image slices to take along each axis to generate predictions
+    :param model_file: .h5 file to load Keras model from
+    :param rgb: indicate whether model expects 3 channel image
+    :returns: numpy array with predictions for each image slice
+    """
+    image_stack = map_to_images(map_file, slices_per_axis, rgb)
 
     # Get predictions
     predictions = predictions_from_images(image_stack, model_file)
@@ -94,7 +104,7 @@ def predict_original_inverse(
     inverse_map_file: str,
     slices_per_axis: int,
     model_file: str,
-    output_dir: str,
+    output_dir: str = None,
     raw_pred_filename: str = "raw_predictions.json",
     average_pred_filename: str = "avg_predictions.json",
     rgb: bool = False,
@@ -137,17 +147,21 @@ def predict_original_inverse(
     predictions = predictions_from_images(total_image_stack, model_file)
 
     # Record raw predictions
-    assert Path(
-        output_dir
-    ).is_dir(), f"Could not find expected directory at {output_dir}"
+    if output_dir:
+        assert Path(
+            output_dir
+        ).is_dir(), f"Could not find expected directory at {output_dir}"
     # Split the predictions in half to match the original and inverse pairs
     raw_predictions = {
         "Original": predictions[: int(len(predictions) / 2)].tolist(),
         "Inverse": predictions[int(len(predictions) / 2) :].tolist(),
     }
     try:
-        with open(Path(output_dir) / raw_pred_filename, "w") as raw_pred_file:
-            json.dump(raw_predictions, raw_pred_file, indent=4)
+        if output_dir:
+            with open(Path(output_dir) / raw_pred_filename, "w") as raw_pred_file:
+                json.dump(raw_predictions, raw_pred_file, indent=4)
+        else:
+            print(f"Raw predictions:\n{json.dumps(raw_predictions, indent=2)}")
     except Exception:
         logging.exception(f"Could not write raw predictions to {raw_pred_file.name}")
         raise
@@ -164,8 +178,11 @@ def predict_original_inverse(
         },
     }
     try:
-        with open(Path(output_dir) / average_pred_filename, "w") as avg_pred_file:
-            json.dump(avg_predictions, avg_pred_file, indent=4)
+        if output_dir:
+            with open(Path(output_dir) / average_pred_filename, "w") as avg_pred_file:
+                json.dump(avg_predictions, avg_pred_file, indent=4)
+        else:
+            print(f"Averaged predictions:\n{json.dumps(avg_predictions, indent=2)}")
     except Exception:
         logging.exception(
             f"Could not write average predictions to {avg_pred_file.name}"
@@ -184,7 +201,9 @@ def command_line():
     # Set up parser to work with command line argument or yaml file
     parser = configargparse.ArgParser(
         config_file_parser_class=configargparse.YAMLConfigFileParser,
-        description="Generate predictions from original and inverse hand map files using the model provided.",
+        description="Generate predictions from original and inverse hand map files using the model provided. "
+        "If an output directory is provided, the raw and average predictions will be saved there. "
+        "Otherwise they will be printed to the terminal.",
     )
 
     parser.add_argument(
@@ -209,7 +228,7 @@ def command_line():
         "--model_file", required=True, help=".h5 file to load model from"
     )
     parser.add_argument(
-        "--output_dir", required=True, help="directory to store results in"
+        "--output_dir", default=None, help="directory to store results in"
     )
     parser.add_argument(
         "--rgb",
@@ -241,7 +260,7 @@ def command_line():
         rgb=args.rgb,
     )
 
-    print(predictions)
+    return predictions
 
 
 if __name__ == "__main__":
