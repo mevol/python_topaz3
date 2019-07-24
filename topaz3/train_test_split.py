@@ -8,7 +8,9 @@ Copies the test samples to the test directory provided and then deletes them
 from the original location.
 """
 
+import argparse
 import logging
+import os
 import random
 import shutil
 from pathlib import Path
@@ -39,11 +41,8 @@ def test_split(file_list: Tuple, split_percent: float) -> Tuple:
     # Seed random for predictable output
     random.seed(9)
 
-    # Get random indexes
-    random_indexes = [int(random.random() * len(file_list)) for i in range(split_num)]
-
-    # Select random files
-    random_files = [file_list[index] for index in random_indexes]
+    # Guarantees selection without replacement (no duplicates in output set given no duplicates in input set)
+    random_files = random.sample(file_list, split_num)
 
     return random_files
 
@@ -52,11 +51,18 @@ def test_split_directory(
     input_directory: str, split_percent: float, output_directory: str
 ) -> Tuple:
     """
+    Move files or directories from input dir to output dir to separate training and test
+    information.
+
     Looks for all files in the input directory, checks they are all of the same type.
     This means either all directories, or all files with the same file extension.
     Randomly selects split_percent % of them to be moved to the output directory.
     Random number generator is seeded so this is a deterministic translation.
+
     Copies selected files to output directory then deletes.
+    This ensures that all copying is completed before any deletion takes place.
+    If there is an error during copying then function can be ran again with same
+    parameters (once error is fixed).
 
     If the input directory contains subdirectories, they will be moved recursively.
 
@@ -85,8 +91,8 @@ def test_split_directory(
 
     # Get list of files in directory
     input_files = [file for file in input_dir_path.iterdir()]
-
     assert len(input_files) > 0, f"Found no files in {input_dir_path}"
+    logging.info(f"Found {len(input_files)} files/dirs to be randomly selected from")
 
     # Check files are all consistent with one another
     # Gets the set of whether files are directories or not, as they should all be the same
@@ -104,14 +110,23 @@ def test_split_directory(
 
     # Perform the split
     selected_files = test_split(input_files, split_percent)
+    logging.info(f"Randomly selected {len(selected_files)} files/dirs to be moved")
 
     # Use different functions depending on whether using files or directories
     # More options could be added in the future if there is need for special handling
     # selected_files should have at least 1 value so safe to check
     if Path(selected_files[0]).is_dir():
         copied_file_locations = copy_directories(selected_files, output_directory)
+        # Remove the original directories
+        logging.info(f"Removing directories from {input_directory}")
+        for directory in selected_files:
+            shutil.rmtree(directory)
     else:
         copied_file_locations = copy_files(selected_files, output_directory)
+        # Remove the original files
+        logging.info(f"Removing files from {input_directory}")
+        for file in selected_files:
+            os.remove(file)
 
     return copied_file_locations
 
@@ -163,3 +178,41 @@ def copy_directories(dir_list: Tuple, destination: str) -> Tuple:
         raise
 
     return new_file_locations
+
+
+def command_line():
+    """Command line wrapper for test_split_directory"""
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser(
+        description="Tool to randomly select a number of files/ or directories from an input directory and move them to the output directory. "
+        "Random number generator is seeded so this is a repeatable process given the same file inputs. "
+        "Input directory must contain either all directories or all files of the same type. "
+        "This helps to prevent unwanted files from affecting the test split produced."
+    )
+
+    parser.add_argument("input_dir", type=str, help="directory to move files/dirs from")
+    parser.add_argument(
+        "output_dir", type=str, help="selected files/dirs will be moved here"
+    )
+    parser.add_argument(
+        "--split_percent",
+        type=float,
+        default=5.0,
+        help="percentage of files/dirs to randomly select and move",
+    )
+
+    args = parser.parse_args()
+
+    # Execute function
+    new_file_locations = test_split_directory(
+        args.input_dir, args.split_percent, args.output_dir
+    )
+    print(
+        f"Successfully moved {len(new_file_locations)} files/dirs from {args.input_dir} to {args.output_dir}"
+    )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    command_line()
