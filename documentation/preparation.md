@@ -6,6 +6,8 @@ This package was designed for use at Diamond Light Source.
 As such some assumptions have been made in encompassing scripts about file layout and information.
 The Diamond use case will be discussed first and then the building blocks will be explained, which should help you implement the functionality here even if your setup is different.
 
+**Note:** Information on developing a test set [here](#TestSplit).
+
 It is assumed that some processing output will have provided a directory with many structures, each of which has the following information:
 - original and inverse phase files
 - cell group information in a .mtz file
@@ -83,6 +85,17 @@ Within the database there should now be two tables, ai_data and ai_labels, which
 **Note:** If you are not at Diamond, you may experience some issues with the shell scripts.
 Go to topaz3/shell_scripts and alter these such that they run on your machine/system.
 Most of this software is related to the [CCP4 project](http://www.ccp4.ac.uk/) and should be freely available.
+
+### Splitting a test set <a name="TestSplit">
+
+You may wish to split the data that you have into a training and test set.
+This helps to keep the test data separate from the AI you are developing until it is ready for testing.
+
+Topaz3 has a tool to help, view the interface with:
+
+```bash
+topaz.test_split -h
+```
 
 ## Underlying functions
 

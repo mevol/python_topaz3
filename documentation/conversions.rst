@@ -12,6 +12,22 @@ High Level Functions
 
 .. autofunction:: topaz3.conversions.phase_remove_bad_values
 
+Train Test Split Tool
+~~~~~~~~~~~~~~~~~~~~~
+
+This is a helpful tool to randomly select a number of files or subdirectories as test objects
+and remove them from your main directory.
+
+Get help with the command line interface by using:
+
+.. code-block::
+
+    topaz3.test_split -h
+    # Example usage
+    topaz3.test_split /path/to/training/files /keeep/test/files/here
+
+.. autofunction:: topaz3.train_test_split.test_split_directory
+
 
 Low Level Functions
 ^^^^^^^^^^^^^^^^^^^
