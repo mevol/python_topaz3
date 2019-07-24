@@ -137,13 +137,13 @@ def copy_files(file_list: Tuple, destination: str) -> Tuple:
     try:
         # shutil.copy returns the file destination
         new_file_locations = [shutil.copy(file, destination) for file in file_list]
-    except OSError:
-        logging.error(f"Error copying to {destination}")
-        raise
     except shutil.SameFileError:
         logging.error(
             f"Source file and destination file are the same when copying to {destination}"
         )
+        raise
+    except OSError:
+        logging.error(f"Error copying to {destination}")
         raise
 
     return new_file_locations
