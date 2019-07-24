@@ -30,6 +30,7 @@ setup(
         "console_scripts": [
             "topaz3.prepare = topaz3.command_line_preparation:main",
             "topaz3.test_split = topaz3.train_test_split:command_line",
+            "topaz3.predict_from_maps = topaz3.predictions:command_line",
         ]
     },
     #    entry_points = {'console_scripts': ['test-python-hello-world = topaz3.topaz3:main']}, # this makes a script

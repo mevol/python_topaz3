@@ -99,7 +99,26 @@ def predict_original_inverse(
     average_pred_filename: str = "avg_predictions.json",
     rgb: bool = False,
 ) -> np.ndarray:
-    """Get predictions for the original and inverse files at the same time and output to json file"""
+    """
+    Get predictions for the original and inverse maps at the same time and output results.
+
+    Slices both map files into 2d images, loads model from .h5 file and gets predictions on the image
+    slices.
+    These predictions are saved as *raw_predictions.json*, by default, in the **output_dir**.
+
+    The predictions are then averaged across each structure and these values are returned.
+    They are also saved in *avg_predictions.json*, by default.
+
+    :param original_map_file: map file for original hand
+    :param inverse_map_file: map file for inverse hand
+    :param slices_per_axis: number of image slices to take along each axis to generate predictions
+    :param model_file: .h5 file to load Keras model from
+    :param output_dir: directory to output results files to
+    :param rgb: whether the model is expecting a 3 channel image
+    :param raw_pred_filename: set the filename for the raw predictions json output
+    :param average_pred_filename: set the filename for the average predictions json output
+    :returns: numpy array with averaged predictions
+    """
     logging.info("Getting predictions for original and inverse maps pair")
     logging.info(f"Original at: {original_map_file}")
     logging.info(f"Inverse at: {inverse_map_file}")
@@ -156,7 +175,10 @@ def predict_original_inverse(
     return avg_predictions
 
 
-if __name__ == "__main__":
+def command_line():
+    """
+    Command line wrapper for the predict_original_inverse function
+    """
     logging.basicConfig(level=logging.INFO)
 
     # Set up parser to work with command line argument or yaml file
@@ -220,3 +242,7 @@ if __name__ == "__main__":
     )
 
     print(predictions)
+
+
+if __name__ == "__main__":
+    command_line()
