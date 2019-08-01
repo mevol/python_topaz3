@@ -7,7 +7,7 @@ black==19.3b0
 cfgv==2.0.0
 Click==7.0
 cycler==0.10.0
--e git+https://github.com/TimGuiteDiamond/topaz3.git#egg=topaz3
+-e git+https://github.com/DiamondLightSource/python-topaz3to#egg=topaz3
 entrypoints==0.3
 flake8==3.7.7
 gast==0.2.2
