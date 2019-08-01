@@ -34,7 +34,17 @@ master_doc = "index"
 # ones.
 extensions = ["recommonmark", "sphinx.ext.autodoc", "sphinx.ext.autosectionlabel"]
 
-autodoc_mock_imports = ["tensorflow", "tensorflow-gpu", "keras"]
+autodoc_mock_imports = [
+    "tensorflow",
+    "tensorflow-gpu",
+    "keras",
+    "numpy",
+    "configargparse",
+    "yaml",
+    "pandas",
+    "matplotlib",
+    "sklearn",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
