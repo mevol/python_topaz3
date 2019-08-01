@@ -76,6 +76,11 @@ be defined as any other model, with an input parameter of the expected input sha
 This function is then passed to the *pipeline_from_command_line* function along with whether the model
 is designed to use a 3-channel RGB input or a single channel grayscale input.
 
+See the following examples:
+
+- `**Example Basic CNN** <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_cnn_basic.py>`_
+- `**Example Pretrained CNN** <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_pretrain_basic.py>`_
+
 Underlying Training Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
