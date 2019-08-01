@@ -17,6 +17,7 @@ so that they can be adapted to different situations.
    :maxdepth: 2
    :caption: Contents:
 
+   installation
    preparation
    training
    predictions

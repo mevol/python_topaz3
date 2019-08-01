@@ -15,7 +15,7 @@ It is assumed that some processing output will have provided a directory with ma
 
 This will look *roughly* like:
 
-![Directory map](/images/prepare_training_data.png)
+![](/images/prepare_training_data.png)
 
 Note that this allows for the phase, cell and space information to be in entirely separate locations.
 The important thing is that the directories all contain the same structure directories inside them.
@@ -23,13 +23,17 @@ The important thing is that the directories all contain the same structure direc
 From there, the path to the specific files can be defined relative to the structure directories.
 This assumes that the cell and space files are in the same location within each structure directory.
 
-**Example**: the cell info file for a structure with a [PDB ID](https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html) of 4PIB
+---
+**Example:**
+The cell info file for a structure with a [PDB ID](https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html) of 4PIB
 may be located at */scratch/ai_research/structures/4PIB/metadata/cell_info.mtz*.
 In this case, the **cell_info_dir** would be */scratch/ai_research/structures* and the
 **cell_info_path** would be *metadata/cell_info.mtz*.
 At runtime, this will generate the full path for each structure in the cell info directory with the pattern
 *{cell_info_dir}/{structure}/{cell_info_path}*.
 The same process is applied for the space group prameters.
+
+---
 
 The phase information is located by searching the structure directory for a folder which matches the best space group label found in the space group file.
 For example, this will be of the form "P12121".
@@ -47,9 +51,9 @@ Finally, the maps are sliced up into 2D image files and stored in the image dire
 As you can see, there are many parameters necessary for this processing, so the tool provided requires a [yaml](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html) configuration file input.
 You can generate this file now with:
 
-``bash
+```bash
 topaz3.prepare --example config.yaml
-``
+```
 
 which will generate a file that looks like this:
 ```yaml

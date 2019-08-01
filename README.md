@@ -26,7 +26,7 @@ Use the table on [this page](https://www.tensorflow.org/install/source#tested_bu
 Clone the repository from the [source code](https://github.com/DiamondLightSource/python-topaz3.git) on Github:
 
 ```bash
-git clone https://github.com/TimGuiteDiamond/topaz3.git
+git clone https://github.com/DiamondLightSource/python-topaz3.git
 ```
 
 It is good practice to create a [virtual environment](https://realpython.com/python-virtual-environments-a-primer/) for development:
