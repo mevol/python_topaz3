@@ -90,6 +90,8 @@ Within the database there should now be two tables, ai_data and ai_labels, which
 Go to topaz3/shell_scripts and alter these such that they run on your machine/system.
 Most of this software is related to the [CCP4 project](http://www.ccp4.ac.uk/) and should be freely available.
 
+## Data Preparation Tools
+
 ### Splitting a test set <a name="TestSplit">
 
 You may wish to split the data that you have into a training and test set.
@@ -98,8 +100,53 @@ This helps to keep the test data separate from the AI you are developing until i
 Topaz3 has a tool to help, view the interface with:
 
 ```bash
-topaz.test_split -h
+topaz3.test_split -h
 ```
+
+This is designed to work on a directory which is filled with subdirectories or files all of the same type.
+It will refuse to work if presented with anything else as there is too much room for an error in this case.
+
+### Applying a Filter
+
+You may wish to apply a filter to all of your images!
+Some basic filters have been prepared for you and you can find instructions to filter every image in a directory with:
+
+```bash
+topaz3.filter -h
+```
+
+The command takes the input and output directory paths and lets you choose a filter from preprepared options.
+
+All extra parameters to the filter function are passed in as key value pairs with an equals sign.
+
+For example, to use the
+[gaussian filter](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html#scipy.ndimage.gaussian_filter):
+
+```bash
+topaz3.filter /input/directory /output/directory gaussian sigma=5
+```
+
+To add a filter to the available list, import it to the [filters module](https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/filters.py)
+and add an entry to the available filters dictionary with a sensible name.
+
+To use another filter, use the underlying *filter_directory* function from topaz3.filters:
+
+```python
+def filter_file(
+    input_file: str, output_file: str, filter: Callable, parameters: dict = {}
+):
+    """
+    Read the input file, apply filter with expanded parameters as keywords and save in the output file location
+    :param input_file: file to be filtered
+    :param output_file: save output here
+    :param filter: apply this filter
+    :param parameters: give these parameters to filter
+    :return: output file location
+    """
+```
+
+This may also be necessary if the filter takes tuples, dictionaries etc as argument, as these are difficult to
+pass in from the commmand line.
 
 ## Underlying Preparation Functions
 
