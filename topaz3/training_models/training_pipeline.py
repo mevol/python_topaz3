@@ -42,7 +42,7 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
     """
     Execute the pipeline on the model provided.
 
-    Reads all files in from the training directory path provided, gets their labels from the ai_labels
+    Reads all files in from the training directory path provided, gets their labels from the *ai_labels*
     table in the database provided.
 
     Sets up Keras ImageDataGenerator for training images with scaling and extra parameters provided,
@@ -56,7 +56,7 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
 
     Records in output directory the history and saves model for each run.
 
-    Parameters:
+    Parameters in **parameters_dict**:
 
     - *training_dir* (required) - directory with training images
     - *database_file* (required) - path to database with ai_labels table to get labels from
