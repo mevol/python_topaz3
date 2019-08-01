@@ -101,7 +101,7 @@ Topaz3 has a tool to help, view the interface with:
 topaz.test_split -h
 ```
 
-## Underlying functions
+## Underlying Preparation Functions
 
 ### Files to map
 

@@ -75,3 +75,12 @@ be defined as any other model, with an input parameter of the expected input sha
 
 This function is then passed to the *pipeline_from_command_line* function along with whether the model
 is designed to use a 3-channel RGB input or a single channel grayscale input.
+
+Underlying Training Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autofunction:: topaz3.training_models.training_pipeline.pipeline
+
+.. autofunction:: topaz3.training_models.training_pipeline.pipeline_from_command_line
+
+.. autofunction:: topaz3.training_models.training_pipeline.get_pipeline_parameters

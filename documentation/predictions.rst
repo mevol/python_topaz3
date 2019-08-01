@@ -75,8 +75,8 @@ If the output directory is not specified, the results will be printed to the ter
     model_file: /path/to/models/good_model.h5
     output_dir: /record/predictions/here
 
-Underlying Functions
-^^^^^^^^^^^^^^^^^^^^
+Underlying Prediction Functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: topaz3.predictions.predict_original_inverse
 

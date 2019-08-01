@@ -39,10 +39,39 @@ logging.basicConfig(level=logging.INFO, filename="training.log", filemode="w")
 
 
 def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: dict):
-    """Execute the pipeline on the model provided.
+    """
+    Execute the pipeline on the model provided.
 
-    :param model: Keras model to train and evaluate
-    :param rgb: set this to true only if the model you have provided is expecting an rgb image
+    Reads all files in from the training directory path provided, gets their labels from the ai_labels
+    table in the database provided.
+
+    Sets up Keras ImageDataGenerator for training images with scaling and extra parameters provided,
+    and for validation images with scaling only.
+
+    Randomly mixes training data and creates k folds.
+
+    Trains on different fold for a run for the number of runs requested.
+
+    If test directory is provided, evaluates against test data and records that in evaluation folder.
+
+    Records in output directory the history and saves model for each run.
+
+    Parameters:
+
+    - *training_dir* (required) - directory with training images
+    - *database_file* (required) - path to database with ai_labels table to get labels from
+    - *output_dir* (required) - directory to output files to (this name will be appended with date and time when the training was started)
+    - *k_folds* (required) - how many folds to create
+    - *runs* (required) - how many training runs to perform
+    - *epochs* (required) - how many epochs to use in each run
+    - *batch_size* (required) - size of batch when loading files during training (usually exact multiple of number of files)
+    - *test_dir* - directory with testing images
+    - *slices_per_structure* - how many images should be averaged into one structure during testing
+    - *rgb* - whether the model is expecting a 3 channel image
+    - image_augmentation_dict - dictionary of key-value pairs to pass as parameters to the Keras ImageGenerator for training images
+
+    :param create_model: function which returns new Keras model to train and evaluate
+    :param parameters_dict: dictionary of parameters for use in pipeline
     """
 
     # Create an output directory if it doesn't exist
@@ -229,7 +258,14 @@ def pipeline(create_model: Callable[[int, int, int], Model], parameters_dict: di
 def pipeline_from_command_line(
     create_model: Callable[[int, int, int], Model], rgb: bool = False
 ):
-    """Run the training pipeline from the command line with config file"""
+    """
+    Run the training pipeline from the command line with config file
+
+    Get parameters from the command line and pass them to training_pipeline in the parameter dict
+
+    :param create_model: function which returns new Keras model to train and evaluate
+    :param rgb: whether the model is expecting a 3 channel image
+    """
 
     # Get from pipeline
     argument_dict = get_pipeline_parameters()
