@@ -78,8 +78,8 @@ is designed to use a 3-channel RGB input or a single channel grayscale input.
 
 See the following examples:
 
-- `**Example Basic CNN** <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_cnn_basic.py>`_
-- `**Example Pretrained CNN** <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_pretrain_basic.py>`_
+- `Example Basic CNN <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_cnn_basic.py>`_
+- `Example Pretrained CNN <https://github.com/DiamondLightSource/python-topaz3/blob/master/topaz3/training_models/example_pretrain_basic.py>`_
 
 Underlying Training Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
