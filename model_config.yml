@@ -1,0 +1,8 @@
+training_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/traced/map_out/training/
+database_file: /dls/metrix/metrix/data_analysis/for_METRIX/results_20190326/metrix_db_20190403_topaz3_copy.sqlite
+output_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/ml_results/3d_cnn/
+k_folds: 3
+runs: 3
+epochs: 50
+batch_size: 50
+test_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/traced/map_out/testing/

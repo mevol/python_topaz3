@@ -1,0 +1,12 @@
+phase_dir: /dls/metrix/metrix/data_analysis/for_METRIX/results_20190326/AI_training/EP_phasing/solvent_nobuild/
+cell_info_dir: /dls/metrix/metrix/data_analysis/for_METRIX/results_20190326/AI_training/xia2_stresstest/
+cell_info_path: DataFiles/AUTOMATIC_DEFAULT_free.mtz
+space_group_dir: /dls/metrix/metrix/data_analysis/for_METRIX/results_20190326/AI_training/EP_phasing/solvent_nobuild/
+space_group_path: simple_xia2_to_shelxcde.log
+xyz_limits:
+  - 200
+  - 200
+  - 200
+maps_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/solvent_notraced/map_out/
+slices_per_axis: 20
+images_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/solvent_notraced/image_out/
