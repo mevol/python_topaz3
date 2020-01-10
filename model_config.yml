@@ -4,5 +4,5 @@ output_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/ml_
 k_folds: 3
 runs: 3
 epochs: 50
-batch_size: 50
+batch_size: 10
 test_dir: /dls/metrix/metrix/data_analysis/for_METRIX/test_topaz3/20191217/traced/map_out/testing/

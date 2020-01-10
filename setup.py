@@ -14,7 +14,12 @@ setup(
     author_email="tim.guite@diamond.ac.uk",
     packages=["topaz3", "topaz3.training_models"],
     install_requires=[
-        "tensorflow-gpu<=1.13",
+        #"tensorflow-gpu<=1.13",
+        #"tensorflow-gpu==1.12",
+        #"tensorflow-gpu==1.13",
+        #"tensorflow-gpu==1.14",
+        #"tensorflow-gpu==1.15",
+        "tensorflow",
         "Keras",
         "Pillow",
         "procrunner",

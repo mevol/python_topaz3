@@ -9,8 +9,8 @@ same training parameters.
 from numpy.random import seed
 
 seed(1)
-from tensorflow import set_random_seed
-#from tensorflow.compat.v1 import set_random_seed
+#from tensorflow import set_random_seed
+from tensorflow.compat.v1 import set_random_seed
 set_random_seed(2)
 
 import logging
@@ -218,7 +218,7 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
         validation_data=testing_generator,
         validation_steps=(len(testing_dict["Files"]) / batch_size),
         use_multiprocessing=True,
-        workers=1)
+        workers=8)
 
 
 #    # Create input data dict
@@ -286,7 +286,7 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
 ###           open the individual files in the batch with mrcfile to create a
 ###           numpy array which can directly go into training
 
-    1/0
+#    1/0
         # Create generators
         
 #        print(active_training_set.info)
@@ -370,15 +370,15 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
 #            class_mode="categorical",
 #        )
 
-    history = model.fit_generator(
-        train_generator,
-        steps_per_epoch=int((len(active_training_set["Files"]) / batch_size)),
-        epochs=epochs,
-        validation_data=val_generator,
-        validation_steps=(len(active_validation_set["Files"]) / batch_size),
-        use_multiprocessing=True,
-        workers=8,
-        )
+#    history = model.fit_generator(
+#        train_generator,
+#        steps_per_epoch=int((len(active_training_set["Files"]) / batch_size)),
+#        epochs=epochs,
+#        validation_data=val_generator,
+#        validation_steps=(len(active_validation_set["Files"]) / batch_size),
+#        use_multiprocessing=True,
+#        workers=8,
+#        )
 
     # Send history to csv
     history_to_csv(history, histories_path / f"history_{k}.csv")
