@@ -190,11 +190,11 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
     batch_size = parameters_dict["batch_size"]
 
     # New model
+    print(888888, input_shape)
     model = create_model(input_shape)
     model_info = model.get_config()
 
-    training_generator = DataGenerator(#training_dict,
-                                       training_dict['Files'],
+    training_generator = DataGenerator(training_dict['Files'],
                                        training_dict['Labels'],
                                        dim=MAP_DIM,
                                        batch_size=batch_size,
@@ -204,7 +204,6 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
 
     testing_generator = DataGenerator(testing_dict['Files'],
                                        testing_dict['Labels'],
-                                      # testing_dict,
                                        dim=MAP_DIM,
                                        batch_size=batch_size,
                                        n_classes=2,
