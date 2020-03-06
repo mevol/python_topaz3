@@ -38,8 +38,8 @@ def history_to_csv(history, filename):
     """Put the history in a csv file with known format"""
     history_data = pandas.DataFrame(
         {
-            "Accuracy": history.history["acc"],
-            "Val Accuracy": history.history["val_acc"],
+            "Accuracy": history.history["accuracy"],
+            "Val Accuracy": history.history["val_accuracy"],
             "Loss": history.history["loss"],
             "Val Loss": history.history["val_loss"],
         }

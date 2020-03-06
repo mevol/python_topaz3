@@ -30,8 +30,7 @@ from keras import Model
 from keras.preprocessing.image import ImageDataGenerator
 
 from topaz3.training_models.plot_history import history_to_csv
-from topaz3.training_models.k_fold_boundaries import k_fold_boundaries
-from topaz3.evaluate_model import evaluate
+from topaz3.evaluate_model_3d import evaluate
 from topaz3.training_models.data_generator import DataGenerator
 
 MAP_DIM = (201, 201, 201)
@@ -51,8 +50,6 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
 
     Randomly mixes training data and creates k folds.
 
-    Trains on different fold for a run for the number of runs requested.
-
     If test directory is provided, evaluates against test data and records that in evaluation folder.
 
     Records in output directory the history and saves model for each run.
@@ -62,8 +59,6 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
     - *training_dir* (required) - directory with training images
     - *database_file* (required) - path to database with ai_labels table to get labels from
     - *output_dir* (required) - directory to output files to (this name will be appended with date and time when the training was started)
-    - *k_folds* (required) - how many folds to create
-    - *runs* (required) - how many training runs to perform
     - *epochs* (required) - how many epochs to use in each run
     - *batch_size* (required) - size of batch when loading files during training (usually exact multiple of number of files)
     - *test_dir* - directory with testing images
@@ -144,17 +139,7 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
     names = [re.findall("(.*)", Path(file).stem)[0] for file in test_files]
     test_labels = [data_indexed.at[name, "Label"] for name in names]
 
-#    print(train_files)
-#    print(test_files)
-
-
 #    # Prepare data generators to get data out
-#    # Always rescale and also expand dictionary provided as parameter
-#    train_datagen = ImageDataGenerator(
-#        rescale=1.0 / 255, **parameters_dict["image_augmentation_dict"]
-#    )
-#    # Only rescale validation
-#    validation_datagen = ImageDataGenerator(rescale=1.0 / 255)
 
     # Build model
     if parameters_dict["rgb"] is True:
@@ -176,21 +161,14 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
         {"Files": test_files, "Labels": [str(label) for label in test_labels]}
     )
 
-#    print(training_dataframe.head())
-#    print(testing_dataframe.head())
-
     training_dict = training_dataframe.to_dict()
     testing_dict = testing_dataframe.to_dict()
-    
-#    print(training_dict)
-#    print(testing_dict)
 
     # Model run parameters
     epochs = parameters_dict["epochs"]
     batch_size = parameters_dict["batch_size"]
 
     # New model
-    print(888888, input_shape)
     model = create_model(input_shape)
     model_info = model.get_config()
 
@@ -199,7 +177,6 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
                                        dim=MAP_DIM,
                                        batch_size=batch_size,
                                        n_classes=2,
-                                       #n_channels=1,
                                        shuffle=True)
 
     testing_generator = DataGenerator(testing_dict['Files'],
@@ -207,7 +184,6 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
                                        dim=MAP_DIM,
                                        batch_size=batch_size,
                                        n_classes=2,
-                                       #n_channels=1,
                                        shuffle=True)
 
     history = model.fit_generator(
@@ -219,179 +195,19 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
         use_multiprocessing=True,
         workers=8)
 
-
-#    # Create input data dict
-#    partition = {'train' : train_files,
-#                 'test' : test_files}
-#    labels = {train_files : train_labels,
-#              test_files : test_labels}
-
-### NOTE: train and test data are being read; this is from separate directories
-###       though; should combine into one dir, read all in, add the labels;
-###       do this in a dataframe and then split the data frame????
-
-
-
-
-
-#    # Create training dataframe
-#    training_dataframe = pandas.DataFrame(
-#        {"Files": train_files, "Labels": [str(label) for label in train_labels]}
-#    )
-#    
-#    print(train_files)
-#    print(training_dataframe.head())
-#    
-#    training_dataframe.set_index("Files")
-#    training_data_shuffled = training_dataframe.sample(frac=1)
-#
-    # Train the model k-fold number of times on different folds and record the output
-    # Model run parameters
-    #k_folds = parameters_dict["k_folds"]
-    #runs = parameters_dict["runs"]
-#    epochs = parameters_dict["epochs"]
-#    batch_size = parameters_dict["batch_size"]
-
-#    fold_boundaries = k_fold_boundaries(train_files, k_folds)
-#    for k in range(runs):
-#        logging.info(f"Running cross validation set {k + 1}")
-
-      # New model
-#    model = create_model(input_shape)
-#    model_info = model.get_config()
-        
-        
-
-#        # Separate the active training and validations set based on the fold boundaries
-#        active_training_set = pandas.concat(
-#            [
-#                training_data_shuffled[: fold_boundaries[k][0]],
-#                training_data_shuffled[fold_boundaries[k][1] :],
-#            ]
-#        )
-#        
-#        #active_training_set_dict = dict(active_training_set_dict)
-#        
-#        active_validation_set = training_data_shuffled[
-#            fold_boundaries[k][0] : fold_boundaries[k][1]
-#        ]
-#
-#        logging.info(f"Active training set of {len(active_training_set['Files'])}")
-#        logging.info(f"Active validation set of {len(active_validation_set['Files'])}")
-
-
-### TO DO --> find a way create data batches that use the files listed in
-###           active_training_set and active_validation_set
-###           open the individual files in the batch with mrcfile to create a
-###           numpy array which can directly go into training
-
-#    1/0
-        # Create generators
-        
-#        print(active_training_set.info)
-#        print(active_training_set.shape)
-        
-#        params = {'dim': (32,32,32),
-#                  'batch_size': 64,
-#                  'n_classes': 6,
-#                  'n_channels': 1,
-#                  'shuffle': True}
-
-
-
-#        training_generator = DataGenerator(x = partition['train'],
-#                                           y = labels,
-#                                           dim=MAP_DIM,
-#                                           batch_size=batch_size,
-#                                           n_classes=2,
-#                                           n_channels=1,
-#                                           shuffle=True
-#                                           **params)
-                                           
-                                           
-#        train_input_fn = tf.estimator.inputs.numpy_input_fn(x = {"x": sourceArray},
-#                                                            y = {"y": markedArray, "m": noMaskArray},
-#                                                           #"w": weightArray},
-#                                                            batch_size = 100,
-#                                                            num_epochs = None,
-#                                                            shuffle = True)
-                                                            
-#        validation_generator = DataGenerator(x = partition['validation'],
-#                                             y = labels,
-#                                             dim=MAP_DIM,
-#                                             batch_size=batch_size,
-#                                             n_classes=2,
-#                                             n_channels=1,
-#                                             shuffle=True
-#                                             **params)
-
-#        eval_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x": sourceArray},
-#                                                           y={"y": markedArray, "m": noMaskArray},
-#                                                           num_epochs=5,
-#                                                           shuffle=False)
-        
-#        for s in active_training_set:
-#          print(s)
-
-#          if s == "Files":
-#            pass
-#          else:
-#            print(s)
-#            with mrcfile.open(s) as mrc:
-#              next(mrc)
-#              volume = mrc.data
-
-#          train_generator = train_datagen.flow_from_dataframe(
-#            active_training_set,
-            #volume,
-#            x_col="Files",
-#            y_col="Labels",
-#            target_size=MAP_DIM,
-#            color_mode=color_mode,
-#            shuffle=True,
-#            batch_size=batch_size,
-#            class_mode="categorical",
-#            )
-#        for s in active_validation_set:
-#          with mrcfile.open(s) as mrc:
-#            next(mrc)
-#            volume = mrc.data
-
-#          val_generator = validation_datagen.flow_from_dataframe(
-#            active_validation_set,
-#            #volume,
-#            x_col="Files",
-#            y_col="Labels",
-#            target_size=MAP_DIM,
-#            color_mode=color_mode,
-#            shuffle=True,
-#            batch_size=batch_size,
-#            class_mode="categorical",
-#        )
-
-#    history = model.fit_generator(
-#        train_generator,
-#        steps_per_epoch=int((len(active_training_set["Files"]) / batch_size)),
-#        epochs=epochs,
-#        validation_data=val_generator,
-#        validation_steps=(len(active_validation_set["Files"]) / batch_size),
-#        use_multiprocessing=True,
-#        workers=8,
-#        )
-
     # Send history to csv
-    history_to_csv(history, histories_path / f"history_{k}.csv")
+    history_to_csv(history, histories_path / f"history.csv")
     # Save model as h5
-    model.save(str(models_path / f"model_{k}.h5"))
+    model.save(str(models_path / f"model.h5"))
 
     # Make evaluation folder
     if parameters_dict["test_dir"]:
         logging.info("Performing evaluation of model")
-        evaluation_dir_path = str(evaluations_path / f"evaluation_{k}")
+        evaluation_dir_path = str(evaluations_path / f"evaluation")
         if not Path(evaluation_dir_path).exists():
             os.mkdir(evaluation_dir_path)
         evaluate(
-            str(models_path / f"model_{k}.h5"),
+            str(models_path / f"model.h5"),
             parameters_dict["test_dir"],
             parameters_dict["database_file"],
             evaluation_dir_path,
@@ -468,7 +284,9 @@ def get_pipeline_parameters() -> dict:
         help="config file to specify the following parameters in",
     )
     parser.add_argument(
-        "--training_dir", required=True, help="directory with training images in"
+        "--training_dir",
+        required=True,
+        help="directory with training images in"
     )
     parser.add_argument(
         "--database_file",
@@ -480,20 +298,10 @@ def get_pipeline_parameters() -> dict:
         required=True,
         help="directory to output results files to. Will be appended with date and time of program run",
     )
-#    parser.add_argument(
-#        "--k_folds",
-#        required=True,
-#        type=int,
-#        help="number of folds to create for k-fold cross-validation",
-#    )
     parser.add_argument(
-        "--runs",
+        "--epochs", type=int,
         required=True,
-        type=int,
-        help="number of folds to run training and validation on. Must be equal or lower than k_folds",
-    )
-    parser.add_argument(
-        "--epochs", type=int, required=True, help="number of epochs to use in each run"
+        help="number of epochs to use in each run"
     )
     parser.add_argument(
         "--batch_size",
@@ -507,11 +315,6 @@ def get_pipeline_parameters() -> dict:
     )
 
     (known_args, unknown_args) = parser.parse_known_args()
-
-#    assert known_args.k_folds >= known_args.runs, (
-#        f"Number of runs must be less than or equal to k_folds, "
-#        f"got {known_args.runs} runs and {known_args.k_folds} folds"
-#    )
 
     argument_dict = vars(known_args)
 
