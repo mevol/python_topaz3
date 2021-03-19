@@ -29,7 +29,7 @@ import yaml
 from keras import Model
 from keras.preprocessing.image import ImageDataGenerator
 
-from topaz3.training_models.plot_history import history_to_csv
+from topaz3.training_models.plot_history import history_to_csv, figure_from_csv
 from topaz3.evaluate_model_3d import evaluate
 from topaz3.training_models.data_generator import DataGenerator
 
@@ -197,6 +197,8 @@ def pipeline(create_model: Callable[[int, int, int, int], Model], parameters_dic
 
     # Send history to csv
     history_to_csv(history, histories_path / f"history.csv")
+    figure_from_csv(os.path.join(histories_path, "history.csv"),
+                    histories_path / f"history.png")
     # Save model as h5
     model.save(str(models_path / f"model.h5"))
 

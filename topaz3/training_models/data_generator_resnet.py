@@ -50,19 +50,15 @@ class DataGenerator(keras.utils.Sequence):
 
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
-            print(777, ID)
             with mrcfile.open(ID) as mrc:
                 volume = mrc.data
-                print(33333, volume.shape)   
         
             # Store sample
             X[i,] = volume
 
         for i, ID in enumerate(list_labels_temp):
             y[i] = ID           
-            print("class label", y[i])
         X = X.reshape(self.batch_size, *self.dim, self.n_channels)
-        print(55555, X.shape)
         
         return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
 

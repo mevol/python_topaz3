@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas
 
 
-def figure_from_csv(history_file):
+def figure_from_csv(history_file, filename):
     history = pandas.read_csv(history_file)
 
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
@@ -30,6 +30,9 @@ def figure_from_csv(history_file):
     ax2.set_xlabel("Epoch")
     ax2.set_title("Loss")
     ax2.legend(loc="best")
+    
+    #file_path = Path(filename)
+    plt.savefig(filename)
 
     return f
 
@@ -55,7 +58,8 @@ def history_to_csv(history, filename):
 if __name__ == "__main__":
 
     filename = sys.argv[1]
+    print(66666666, filename)
 
-    f = figure_from_csv(filename)
-
-    plt.show()
+#    f = figure_from_csv(filename)
+#    plt.savefig("history.png")
+#    plt.show()

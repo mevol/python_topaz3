@@ -14,7 +14,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import classification_report, confusion_matrix
 from topaz3.training_models.data_generator_resnet import DataGenerator
 
-IMG_DIM = (201, 201, 201)
+MAP_DIM = (201, 201, 201)
 
 
 def evaluate(
@@ -36,9 +36,9 @@ def evaluate(
     # Get test files prepared
     # Load files
     try:
-        train_files = glob.glob(f"{test_dir}/*")
-        logging.info(f"Found {len(train_files)} files for training")
-        assert len(train_files) > 0, f"Could not find files at {test_dir}"
+        test_files = glob.glob(f"{test_dir}/*")
+        logging.info(f"Found {len(test_files)} files for testing")
+        assert len(test_files) > 0, f"Could not find files at {test_dir}"
     except AssertionError as e:
         logging.error(e)
         raise
@@ -56,16 +56,17 @@ def evaluate(
     data = pandas.read_sql(f"SELECT * FROM ai_labels", conn)
     data_indexed = data.set_index("Name")
 
-    names = [re.findall("(.*)(?=_[0-9]+)", Path(file).stem)[0] for file in train_files]
-    train_labels = [data_indexed.at[name, "Label"] for name in names]
+    names = [re.findall("(.*)", Path(file).stem)[0] for file in test_files]
+    test_labels = [data_indexed.at[name, "Label"] for name in names]
 
     # Create training dataframe
-    testing_dataframe = pandas.DataFrame({"Files": train_files, "Labels": [str(label) for label in train_labels]})
-
+    testing_dataframe = pandas.DataFrame({"Files": test_files, "Labels": test_labels})
+    
     testing_dict = testing_dataframe.to_dict()
 
-
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
+
+    test_batch_size = len(testing_dataframe)
 
     # Add color mode selection, this is necessary for testing pretrained models which are expecting RGB images
     if rgb:
@@ -76,10 +77,9 @@ def evaluate(
     testing_generator = DataGenerator(testing_dict['Files'],
                                        testing_dict['Labels'],
                                        dim=MAP_DIM,
-                                       batch_size=10,
+                                       batch_size=test_batch_size,
                                        n_classes=2,
                                        shuffle=True)
-
 
     logging.info("Getting predictions")
 
@@ -123,7 +123,7 @@ def evaluate(
             "File": testing_dataframe["Files"],
             "0": predictions[:, 0],
             "1": predictions[:, 1],
-            "True Score": train_labels,
+            "True Score": test_labels,
         }
     )
     raw_dataframe.set_index("File", inplace=True)
@@ -133,6 +133,7 @@ def evaluate(
     per_map_class = classification_report(
         predictions_decoded, testing_dataframe["Labels"], output_dict=True
     )
+    per_map_class_frame = pandas.DataFrame(per_map_class).transpose()
     per_map_conf = confusion_matrix(predictions_decoded, testing_dataframe["Labels"])
     per_map_conff_frame = pandas.DataFrame(per_map_conf)
     logging.info(per_map_class)
