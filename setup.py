@@ -14,7 +14,7 @@ setup(
     author_email="tim.guite@diamond.ac.uk",
     packages=["topaz3", "topaz3.training_models"],
     install_requires=[
-        "tensorflow==2.4.0",
+        "tensorflow==2.5.0",
         "Keras",
         "Pillow",
         "procrunner",
