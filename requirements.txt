@@ -11,7 +11,7 @@ cycler==0.10.0
 entrypoints==0.3
 flake8==3.7.7
 gast==0.2.2
-grpcio==1.21.1
+grpcio==1.53.0
 h5py==2.9.0
 identify==1.4.5
 importlib-metadata==0.18
